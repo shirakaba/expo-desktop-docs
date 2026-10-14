@@ -1,0 +1,32 @@
+import { type InferPageType, loader } from "fumadocs-core/source";
+import { icons } from "lucide-react";
+import { createElement } from "react";
+
+import { docs } from "@/.source";
+
+// See https://fumadocs.vercel.app/docs/headless/source-api for more info
+export const source = loader({
+  // it assigns a URL to your pages
+  baseUrl: "/",
+  source: docs.toFumadocsSource(),
+
+  // This is for setting icons in the sidebar, based off the `icon` frontmatter
+  // in pages and meta files.
+  // https://fumadocs.dev/docs/headless/source-api#icons
+  icon(icon) {
+    if (!icon || !(icon in icons)) {
+      return null;
+    }
+
+    return createElement(icons[icon as keyof typeof icons]);
+  },
+});
+
+/** OG image URL and path segments for a page (used by next/og route and metadata). */
+export function getPageImage(page: InferPageType<typeof source>) {
+  const segments = [...page.slugs, "image.png"];
+  return {
+    segments,
+    url: `/og/${segments.join("/")}`,
+  };
+}

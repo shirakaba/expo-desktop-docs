@@ -1,0 +1,25 @@
+import { DocsLayout } from "fumadocs-ui/layouts/docs";
+
+import { baseOptions } from "@/lib/layout.shared";
+import { createMetadata } from "@/lib/metadata";
+import { source } from "@/lib/source";
+
+export const metadata = createMetadata({
+  title: {
+    template: "%s | Birchdocs",
+    default: "Birchdocs",
+  },
+  description: "Jamie Birch's personal docs site",
+});
+
+export default function Layout({ children }: LayoutProps<"/">) {
+  return (
+    <DocsLayout
+      tree={source.pageTree}
+      {...baseOptions()}
+      githubUrl="https://github.com/shirakaba/birch-docs"
+    >
+      {children}
+    </DocsLayout>
+  );
+}

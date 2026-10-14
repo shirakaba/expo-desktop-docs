@@ -1,0 +1,87 @@
+---
+title: Gradle
+# icon: SiGradle
+icon: Turtle
+---
+
+Here I'll note any Gradle issues I run into when developing for Android (usually via Expo / React Native).
+
+# Cannot convert `''` to `File`
+
+This can happen upon running any Gradle command (whether in the IDE or via CLI). For example:
+
+```sh
+./gradlew clean
+```
+
+Output:
+
+```
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/Users/jamie/Documents/git/banana/android/app/build.gradle' line: 12
+
+* What went wrong:
+A problem occurred evaluating project ':app'.
+> Cannot convert '' to File.
+```
+
+Here's the `app/build.gradle`:
+
+```java
+apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "com.facebook.react"
+
+def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
+
+/**
+ * This is the configuration block to customize your React Native Android app.
+ * By default you don't need to apply any configuration, just uncomment the lines you need.
+ */
+react {
+    entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, rootDir).text.trim())
+```
+
+What's happened is that the script involving `node`:
+
+```java
+["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, rootDir).text.trim()
+```
+
+... has returned an empty string, most likely because `node` couldn't be resolved, which itself is most likely because you're using a Node version manager like Volta and I guess some race condition happened when sourcing the shell.
+
+The solution is to stop the Gradle daemon:
+
+```sh
+cd android
+./gradlew --stop
+```
+
+# Could not resolve project `:react-native-gesture-handler`.
+
+In a React Native project upon installing [React Native Gesture Handler](https://github.com/software-mansion/react-native-gesture-handler) (either directly, or transitively) the Expo (or React Native Community) CLI records it in the autolinking manifest `android/build/generated/autolinking/autolinking.json` at build time.
+
+You may experience this error if you later end up removing it (e.g. due to switching branch). The CLI sees it still recorded in the autolinking manifest, and goes to look for it at the specified filepath, only to find it no longer exists on disk.
+
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Could not determine the dependencies of task ':app:compileDebugJavaWithJavac'.
+> Could not resolve all dependencies for configuration ':app:debugCompileClasspath'.
+   > Could not resolve project :react-native-gesture-handler.
+     Required by:
+         project :app
+      > No matching variant of project :react-native-gesture-handler was found. The consumer was configured to find a library for use during compile-time, preferably optimized for Android, as well as attribute 'com.android.build.api.attributes.AgpVersionAttr' with value '8.11.0', attribute 'com.android.build.api.attributes.BuildTypeAttr' with value 'debug', attribute 'org.jetbrains.kotlin.platform.type' with value 'androidJvm' but:
+          - No variants exist.
+```
+
+The solution is to force autolinking to re-run. Neither `./gradlew clean`, nor `./gradlew --stop` will do this for you. One simple way I found to do this was just to delete the whole build:
+
+```
+rm -rf android/build
+```
+
+I expect you could do it more minimally by deleting just the `android/build/generated/autolinking` subfolder, but I've not had a chance to verify.

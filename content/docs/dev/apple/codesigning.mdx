@@ -1,0 +1,217 @@
+---
+title: Codesigning
+icon: Signature
+---
+
+Codesigning in the Apple ecosystem involves Identifiers, Certificates, and Profiles, which can be managed on the Apple Developer site [here](https://developer.apple.com/account/resources/identifiers/list).
+
+## Terminology
+
+### Identifiers
+
+Identifiers identify **what is being signed**, most commonly an **app**.
+
+For example, one could make an identifier named "Banana" for an app with the bundle identifier `com.fruits.banana`.
+
+Though it's not just apps; they may identify anything from the list below.
+
+<details>
+  <summary>See all identifiers</summary>
+
+- App IDs
+
+  > Register an App ID to enable your app, app extensions, or App Clip to access available services and identify your app in a provisioning profile. You can enable app services when you create an App ID or modify these settings later.
+  - App
+
+    The form includes the following fields (some being readonly, others being editable).
+    - **Platform**: "iOS, iPadOS, macOS, tvOS, watchOS, visionOS"
+    - **Description**: Editable.
+      > You cannot use special characters such as @, &, \*, "
+    - **App ID Prefix**: Your team ID (e.g. `TVU9P2GAL9`).
+    - **Bundle ID**:
+      1.  Explicit
+
+          An Explicit Bundle ID refers to a single app. If you choose this, you can select most **Capabilities**, **App Services**, and **Capability Requests** below, though a small number are greyed out.
+
+          > We recommend using a reverse-domain name style string (i.e. `com.domainname.appname`). It cannot contain an asterisk (\*).
+
+      2.  Wildcard
+
+          A wildcard Bundle ID can refer to one or more apps. If you choose this, only a small number of **Capabilities**, **App Services**, and **Capability Requests** are selectable.
+
+          > Example : `com.domainname.*`
+
+    - **Capabilities**:
+      A long list of capabilities to enable/disable, such as **App Groups** and **Push Notifications**.
+    - **App Services**:
+      Three app services to enable/disable: MusicKit, ShazamKit, and WeatherKit.
+    - **Capability Requests**:
+      A long list of capability requests you can make to request special permissions from Apple, e.g. **Embedded Browser Engine** and **StoreKit External Purchase**.
+
+  - App Clip
+
+- Services IDs
+  > For each website that uses Sign in with Apple, register a services identifier (Services ID), configure your domain and return URL, and create an associated private key.
+- Pass Type IDs
+  > Register a pass type identifier (Pass Type ID) for each kind of pass you create (i.e. gift cards). Registering your Pass Type IDs lets you generate Apple-issued certificates which are used to digitally sign and send updates to your passes, and allow your passes to be recognized by Wallet.
+- Order Type IDs
+  > Register an order type identifier (Order Type ID) to support signing and distributing order bundles with Wallet and Apple Pay. Registering your order type ID lets you generate certificates to digitally sign and send updates to your orders in Wallet.
+- Website Push IDs
+  > Register a Website Push Identifier (Website Push ID). Registering your Website Push IDs lets you generate Apple-issued certificates which are used to digitally sign and send push notifications from your website to macOS.
+- iCloud Containers
+  > Registering your iCloud Container lets you use the iCloud Storage APIs to enable your apps to store data and documents in iCloud, keeping your apps up to date automatically.
+- App Groups
+  > Registering your App Group allows access to group containers that are shared among multiple related apps, and allows certain additional interprocess communication between the apps.
+- Merchant IDs
+  > Register your Merchant Identifiers (Merchant IDs) to enable your apps and websites to process transactions for physical goods and services. Generate an Apple Pay Payment Processing certificate for each registered Merchant ID to validate transactions initiated within your app and/or website.
+- Media IDs
+  > Register a media identifier (Media ID) for each app that uses the Apple Music API, ShazamKit or Apple Music Feed. Then create an associated private key.
+- Map IDs
+  > For each website that uses MapKit JS, register a Maps identifier (Maps ID) then create an associated private key.
+
+</details>
+
+### Certificates
+
+Certificates represent **a signing authority** (e.g. yourself, your team, or your CI system).
+
+Each certificate type covers a certain responsibility scope; see all in the list below.
+
+<details>
+  <summary>See all certificates</summary>
+
+- **Software**
+  - Apple Development
+
+    > Sign development versions of your iOS, iPadOS, macOS, tvOS, watchOS, and visionOS apps.
+
+  - Apple Distribution
+
+    > Sign your iOS, iPadOS, macOS, tvOS, watchOS, and visionOS apps for release testing using Ad Hoc distribution or for submission to App Store Connect.
+
+  - iOS App Development
+
+    > Sign development versions of your iOS app.
+
+  - iOS Distribution (App Store Connect and Ad Hoc)
+
+    > Sign your iOS, iPadOS, watchOS, and visionOS apps for submission to App Store Connect or for Ad Hoc distribution.
+
+  - Mac Development
+
+    > Sign development versions of your Mac app.
+
+  - Mac App Distribution
+
+    > This certificate is used to code sign your app and configure a Distribution Provisioning Profile for submission to the Mac App Store Connect.
+
+  - Mac Installer Distribution
+
+    > This certificate is used to sign your app's Installer Package for submission to the Mac App Store Connect.
+
+  - Developer ID Application
+    > This certificate is used to code sign your app for distribution outside of the Mac App Store Connect.
+
+- **Services**
+  - Apple Push Notification service SSL (Sandbox)
+
+    > Establish connectivity between your notification server and the Apple Push Notification service sandbox environment to deliver remote notifications to your app. A separate certificate is required for each app you develop.
+
+  - Apple Push Notification service SSL (Sandbox & Production)
+
+    > Establish connectivity between your notification server, the Apple Push Notification service sandbox, and production environments to deliver remote notifications to your app. When utilizing HTTP/2, the same certificate can be used to deliver app notifications, update ClockKit complication data, and alert background VoIP apps of incoming activity. A separate certificate is required for each app you distribute.
+
+  - Pass Type ID Certificate
+
+    > Sign and send updates to passes in Wallet.
+
+  - Order Type ID Certificate
+
+    > Sign and send updates to order information payloads displayed in Apple Wallet.
+
+  - Website Push ID Certificate
+
+    > Sign and send updates for Websites.
+
+  - Swift Package Collection Certificate
+
+    > Sign Swift Package Collections for distribution.
+
+  - Swift Package Certificate
+
+    > Sign Swift packages and package collections for distribution. For use with Swift Package Manager v5.9 or later.
+
+  - WatchKit Services Certificate
+
+    > Establish connectivity between your notification server, the Apple Push Notification service sandbox, and production environment to update ClockKit complication data. When utilizing HTTP/2, the same certificate can be used to deliver app notifications, update ClockKit complication data, and alert background VoIP apps of incoming activity. A separate certificate is required for each app you distribute.
+
+  - VoIP Services Certificate
+
+    > Establish connectivity between your notification server, the Apple Push Notification service sandbox, and production environment to alert background VoIP apps of incoming activity. A separate certificate is required for each app you distribute.
+
+  - Apple Pay Payment Processing Certificate
+
+    > Decrypt app transaction data sent by Apple to a merchant/developer.
+
+  - Apple Pay Merchant Identity Certificate
+
+    > A client TLS certificate that is used to authenticate you to Apple Pay Payment Processing Servers
+
+</details>
+
+### Profiles
+
+Profiles detail the **contexts** an app is allowed to run in (e.g. which devices and distribution channels), and the **privileges** (e.g. Push Notifications) that it is entitled to.
+
+To that end, they are made up of the following parts:
+
+- The app identifier
+- One or more certificates
+- A list of eligible devices
+- The entitlements for the app
+
+Whenever an Apple app is launched, the embedded provisioning profile is consulted at runtime. If the profile doesn't meet requirements, Gatekeeper will prevent the app from being opened.
+
+{/* For example, if the provisioning profile in a codesigned Mac app references a certificate for Mac App Distribution, it can be submitted to the Mac App Store, but not launched on a Mac. */}
+
+## How codesigning works
+
+TODO: Explain how [@electron/osx-sign](https://github.com/electron/osx-sign) and [@electron/notarize](https://github.com/electron/notarize) work, disambiguate development vs. distribution signing and application vs. installer signing, and contrast Mac App Store distribution with 3rd Party distribution.
+
+- You need one certificate, of each type as needed, per Apple developer team (not business team, and certainly not per app). There's a limit to the number of Distribution certificates you can issue, so it is best to reuse them.
+- It's provisioning profiles that are per identifier.
+- `Apple Distribution` is a more modern type of certificate, introduced in Xcode 11 onwards, that is suitable for signing both iOS apps for the App Store, and macOS apps for the Mac App Store. However, it cannot sign Mac Installers for the Mac App Store.
+- `3rd Party Mac Installer Distribution` is the only certificate suitable for signing Mac Installers for the Mac App Store.
+- There's also `Apple Development` for local development.
+- An iOS app signed with ad hoc signing can only be run on whatever devices were included in the provisioning profile.
+- A macOS app signed with ad hoc signing can actually be run on any device, you just need to make sure it is downloaded via CLI rather than through a web browser. As downloading through a web browser sets the quarantine bit, causing Gatekeeper to block it from being opened, even if you right-click open it.
+- You can view all certs in (I think) a keychain with:
+
+  ```sh
+  security find-certificate -a -c
+  # To filter on birchlabs
+  security find-certificate -a -c -Z "birchlabs"
+  ```
+
+- You can view all identities with:
+
+  ```sh
+  security find-identity -v
+  ```
+
+- You can download and install the provisioning profiles, via:
+
+  ```sh
+  fastlane sigh download_all -o "$PROFILES_DIR" --platform ios --api_key "{ \"filepath\": \"$KEY_FILEPATH\", \"key_id\": \"$KEY_ID\", \"issuer_id\": \"$ISSUER_ID\" }"
+  ```
+
+  ... however, it's not enough to sign with them. To sign, you need to have also downloaded and installed the certificates contained within the provisioning profiles. Not only that, but the private keys of the certificates.
+
+| Common Name                         | developer.apple.com        |
+| ----------------------------------- | -------------------------- |
+| Apple Development                   | Development                |
+| Apple Distribution                  | Distribution               |
+| 3rd Party Mac Developer Application | Mac App Distribution       |
+| 3rd Party Mac Developer Installer   | Mac Installer Distribution |
+| Developer ID Application            | Developer ID Application   |
+| Developer ID Installer              | Developer ID Installer     |
