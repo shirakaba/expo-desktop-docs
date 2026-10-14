@@ -1,0 +1,95 @@
+---
+title: Run your apps
+description: Build and launch desktop apps in debug or release mode with Expo's Metro server.
+icon: Play
+---
+
+Run desktop targets with Expo Desktop. Continue using Expo CLI for iOS, Android, web, and ordinary Metro development tasks.
+
+## Debug builds
+
+From your app's root directory, run the command for your host platform:
+
+```sh
+# On macOS, with Xcode installed
+npx expo-desktop run macos
+```
+
+```powershell
+# On Windows, with Visual Studio and the RNW dependencies installed
+npx expo-desktop run windows
+```
+
+Both commands use the `Debug` configuration by default. They generate the native project with prebuild if its directory is missing, build it, and launch it on the host computer. macOS also installs or synchronizes CocoaPods when needed. Windows autolinks native dependencies before building.
+
+The first native build can take a while; later builds reuse native build outputs by default. JavaScript edits can be served by Metro without rebuilding the native app. Rebuild after changing native dependencies or native code, and [rerun prebuild](/guides/prebuild) after changing app configuration that affects the native project.
+
+The commands target your current Mac or Windows computer. There is no desktop simulator or device picker, and the CLI does not cross-compile the macOS app on Windows or the Windows app on macOS.
+
+## One Expo-compatible Metro server
+
+You can start your development server separately:
+
+```sh
+npx expo start
+```
+
+Then run `npx expo-desktop run macos` or `npx expo-desktop run windows` in a second terminal. When the selected port is already serving this same project, the run command reuses that server. Logs remain in the terminal that owns Metro.
+
+If no server is running, a debug run starts Expo's Metro server and developer interface for you. This is fully compatible with Expo's iOS, Android, and web workflows, so you do not need separate mobile and desktop bundlers.
+
+Keep the template's Metro configuration, which combines Expo's defaults with desktop platform support:
+
+```js title="metro.config.js"
+const { makeMetroConfig } = require("expo-desktop-metro-config");
+
+module.exports = makeMetroConfig(__dirname);
+```
+
+The default port is `8081`. If you start Expo on a custom port, pass the same port when running the desktop app:
+
+```sh
+# First terminal
+npx expo start --port 8082
+
+# Second terminal, on macOS
+npx expo-desktop run macos --port 8082
+```
+
+On Windows, use `npx expo-desktop run windows --port 8082` in the second terminal instead. Port reuse applies to the same project on the selected port; a different process or another app on that port may cause a prompt to select an available port.
+
+`--no-bundler` requests that the command not start Metro. The current CLI overrides this in Debug builds, including when the configuration is omitted, so it may still start a server. To control your development server, start `npx expo start` first and let the run command reuse it. `--no-bundler` and `--port` cannot be combined.
+
+## Release builds
+
+Use the exact configuration name `Release` to build with a production JavaScript bundle:
+
+```sh
+npx expo-desktop run macos --configuration Release --no-bundler
+```
+
+```powershell
+npx expo-desktop run windows --configuration Release
+```
+
+Release builds embed their JavaScript bundle and do not need a running Metro server to use the app. The macOS command uses `--no-bundler` above to avoid leaving a development server running after it builds and launches the app. Windows release runs skip the persistent Metro server automatically.
+
+To copy the outputs somewhere convenient:
+
+```sh
+npx expo-desktop run macos --configuration Release --no-bundler --output ./dist/macos
+```
+
+```powershell
+npx expo-desktop run windows --configuration Release --no-launch --output ./dist/windows
+```
+
+macOS copies the built `.app` bundle and launches it. Windows exports its native build artifacts; `--no-launch` skips deployment and launch, making this a build-only command. Exporting Windows artifacts does not by itself create a signed Store submission package.
+
+For another Windows architecture, add `--arch x64` or `--arch arm64` with the required Visual Studio tools installed. Windows supports the `Debug` and `Release` configurations. macOS also accepts other Xcode configuration names, but the CLI's production bundling behavior is selected by the exact name `Release`.
+
+A successful release build is the starting point for distribution. Continue to [sign and distribute your apps](/guides/distribution) to configure store identity, signing, and packaging.
+
+## More run options
+
+The [macOS command reference](/cli/run-macos) covers Xcode schemes, existing `.app` binaries, background launching, and cache controls. The [Windows command reference](/cli/run-windows) covers architectures, existing build artifacts, MSBuild properties, logging, and deployment options.

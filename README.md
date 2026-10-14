@@ -1,42 +1,39 @@
-# birch-docs
+# Expo Desktop docs
 
-This is a Next.js application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+Documentation for [Expo Desktop](https://github.com/shirakaba/expo-desktop), built with Next.js and Fumadocs. The root URL opens the About page directly.
 
-Run development server:
+## Local development
 
 ```bash
-npm run dev
-# or
-bun dev
+pnpm install
+pnpm dev
 ```
 
-Open http://localhost:3000 with your browser to see the result.
+Open the local URL printed by Next.js. To verify a production build locally:
 
-## Explore
+```bash
+pnpm build
+pnpm start
+```
 
-In the project, you can see:
+These commands do not deploy the site.
 
-- `lib/source.ts`: Code for content source adapter, [`loader()`](https://fumadocs.dev/docs/headless/source-api) provides the interface to access your content.
-- `lib/layout.shared.tsx`: Shared options for layouts, optional but preferred to keep.
+## Content and navigation
 
-| Route                         | Description                         |
-| ----------------------------- | ----------------------------------- |
-| `src/app/(docs)`              | The documentation layout and pages. |
-| `src/app/api/search/route.ts` | The Route Handler for search.       |
+- `content/docs/index.mdx`: About page at `/`.
+- `content/docs/guides/`: creation, prebuild and desktop config, running, and distribution.
+- `content/docs/cli/`: complete command and flag reference.
+- `content/docs/{scope,how-it-works,ecosystem,licences}.mdx`: project context and resources.
+- `content/docs/meta.json`: sidebar order; guides are expanded and CLI references are grouped.
 
-### Fumadocs MDX
+The content describes the current Expo Desktop 1.x implementation and the SDK 55 / React Native 0.83 template line. When updating it, check `packages/expo-desktop/src/cli.ts`, the command implementations, the default prebuild plugins, and the templates in the source repository. Keep behavior caveats in sync with source fixes, especially the prebuild platform default and flag forwarding.
 
-A `source.config.ts` config file has been included, you can customise different options like frontmatter schema.
+## Branding
 
-Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
+`src/components/desktop-logo.tsx` contains the original monitor-and-phone mark used by navigation and social previews. `src/app/icon.svg` and `src/app/apple-icon.png` are the matching favicon and touch icon. The SVG and component should stay visually in sync. Theme tokens live in `src/app/global.css`.
 
-## Learn More
+## Links and hosting
 
-To learn more about Next.js and Fumadocs, take a look at the following
-resources:
+The only retained link to the original personal documentation site is the requested talk link on `/ecosystem`. There are no inherited canonical or asset URLs pointing there. The GitHub navigation link points to the Expo Desktop project.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [Fumadocs](https://fumadocs.vercel.app) - learn about Fumadocs
+Metadata resolves its base URL from `VERCEL_PROJECT_PRODUCTION_URL`, then `VERCEL_URL`, with localhost as a local fallback. Configure these for the eventual hosting destination. No production hostname is hardcoded. This content update does not publish or deploy the website; the existing `vercel.json` hosting rules are unchanged.

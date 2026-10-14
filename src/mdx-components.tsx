@@ -11,7 +11,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
 
     // Similarly to `src/lib/source.ts`, if we get a string-based icon prop,
     // look it up from the lucide-react icons for convenience.
-    Card: function BirchCard({ children, icon, ...rest }: CardProps) {
+    Card: function DocsCard({ children, icon, ...rest }: CardProps) {
       const resolvedIcon: ReactNode =
         typeof icon === "string" && icon in icons
           ? createElement(icons[icon as keyof typeof icons])

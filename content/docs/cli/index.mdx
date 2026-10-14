@@ -1,0 +1,56 @@
+---
+title: CLI reference
+description: Commands, arguments, defaults, and options for expo-desktop.
+icon: Terminal
+---
+
+Run Expo Desktop with `npx expo-desktop`. The CLI provides four commands:
+
+| Command                           | Purpose                                               |
+| --------------------------------- | ----------------------------------------------------- |
+| [`create-app`](/cli/create-app)   | Create an Expo project with desktop support.          |
+| [`prebuild`](/cli/prebuild)       | Generate and configure native projects.               |
+| [`run macos`](/cli/run-macos)     | Build and launch an app on the macOS host.            |
+| [`run windows`](/cli/run-windows) | Build, deploy, and launch an app on the Windows host. |
+
+`run` groups the two platform commands; it does not run a platform by itself. There are no command aliases such as `run:macos` or `run:windows`.
+
+Use Expo CLI for commands such as `npx expo start`, `npx expo install`, `npx expo run:ios`, and `npx expo run:android`. Expo Desktop does not provide `start`, `install`, `export`, or store submission commands. Its desktop run commands use the app's installed Expo CLI to manage Metro.
+
+## Help and version
+
+| Option      | Alias | Behavior                                                |
+| ----------- | ----- | ------------------------------------------------------- |
+| `--help`    | `-h`  | Show help for the selected command.                     |
+| `--version` | `-v`  | Print the CLI version when used alone at the top level. |
+
+```sh
+npx expo-desktop --help
+npx expo-desktop --version
+npx expo-desktop create-app --help
+npx expo-desktop prebuild --help
+npx expo-desktop run macos --help
+npx expo-desktop run windows --help
+```
+
+`create-app --version <value>` is a separate template selection option, described in the [create-app reference](/cli/create-app#version-selection).
+
+## Argument conventions
+
+Pass options after the command they apply to. String options accept either `--option value` or `--option=value`. Quote values containing spaces. Boolean switches take no value. Use the documented `--no-*` switches to disable their corresponding behavior.
+
+The explicit short aliases are `-y` for `create-app --yes` and `-p` for `prebuild --platform`, in addition to the help and version aliases above. Prefer the option spellings shown in these references.
+
+`prebuild` always operates on the current directory. The run commands accept an optional project path, but run them from the app root when native projects still need to be generated: their automatic prebuild currently uses the working directory.
+
+## Metro and environment
+
+For development, the run commands reuse a detected Metro server for the same project on the selected port, including one started with `npx expo start`. When no compatible server is found, they start Expo's Metro server and developer interface. That server can also serve the project's iOS, Android, and Web targets when those targets are configured.
+
+The default Metro port is `8081`, or a valid `RCT_METRO_PORT` environment variable. `--port` takes precedence; `--port 0` selects an available port. The CLI can prompt to choose another port when one is busy. In a non-interactive session, an unavailable explicit port is an error.
+
+When reusing an existing server on a non-default port, pass that same port explicitly with `--port`. The current reuse path can otherwise fall back to `8081` after detecting the server.
+
+`prebuild` loads Expo environment files in development mode. The run commands use production mode for the exact configuration name `Release`, and development mode otherwise. `EXPO_DEBUG=1` enables additional diagnostic output; `CI=1` affects prompts and interactive behavior.
+
+The reference describes the current Expo Desktop 1.0.5 implementation, including known differences between its help text and behavior. See the [command definitions](https://github.com/shirakaba/expo-desktop/blob/main/packages/expo-desktop/src/cli.ts) for the source.

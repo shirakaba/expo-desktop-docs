@@ -1,12 +1,14 @@
 {
   "pages": [
     "index",
-    "---Software Engineering---",
-    "...dev",
-    "---Other---",
-    "...other",
-    "---Boring Stuff---",
-    "links",
+    "scope",
+    "---Guides---",
+    "...guides",
+    "---Reference---",
+    "cli",
+    "---Project---",
+    "how-it-works",
+    "ecosystem",
     "licences"
   ]
 }

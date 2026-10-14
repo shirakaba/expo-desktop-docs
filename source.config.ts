@@ -21,7 +21,18 @@ export default defineConfig({
   mdxOptions: {
     remarkPlugins: [remarkAdmonition],
     rehypeCodeOptions: {
-      langs: ["ts", "js", "html", "tsx", "mdx", "objective-cpp"],
+      langs: [
+        "ts",
+        "js",
+        "html",
+        "tsx",
+        "mdx",
+        "objective-cpp",
+        "bash",
+        "json",
+        "powershell",
+        "xml",
+      ],
       themes: {
         light: "catppuccin-latte",
         dark: "catppuccin-mocha",

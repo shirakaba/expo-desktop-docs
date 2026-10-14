@@ -1,0 +1,142 @@
+---
+title: Prebuild and app config
+description: Generate native projects from app configuration and config plugins.
+icon: Hammer
+---
+
+Prebuild turns your Expo app configuration and dependencies into native projects. Expo Desktop extends this process to `macos/` and `windows/`, alongside Expo's `ios/` and `android/` projects.
+
+## Generate native projects
+
+Run the command from your app's root directory:
+
+```sh
+npx expo-desktop prebuild
+```
+
+Without a platform flag, this requests all four native platforms. The selection is narrowed to matching entries in `expo.platforms` when possible. On Windows, iOS and macOS generation is skipped.
+
+Generate just the target you are working on:
+
+```sh
+npx expo-desktop prebuild --platform macos
+npx expo-desktop prebuild --platform windows
+```
+
+`--platform desktop` requests both desktop projects; `--platform mobile` requests iOS and Android. You can also use `--platform all`. See the [prebuild reference](/cli/prebuild) for all flags, including installation and template options.
+
+Building still requires each platform's toolchain: macOS builds run on macOS with Xcode, and Windows builds run on Windows with Visual Studio.
+
+## How prebuild works
+
+Expo Desktop follows Expo's [Continuous Native Generation](https://docs.expo.dev/workflow/continuous-native-generation/) model. Your app configuration, dependencies, native template, and config plugins describe the native project:
+
+1. Read the app configuration, prompting for missing identifiers and saving them to a static config when possible.
+2. Resolve the Expo Desktop native template and copy missing native project directories into your app.
+3. Update package scripts and add missing template dependencies as needed, prompting to install changed dependencies unless installation is disabled.
+4. Apply config plugins to native project files, including desktop-specific changes and Expo Modules setup.
+5. Install CocoaPods for newly generated or changed Apple projects when required and installation is enabled.
+
+A normal prebuild applies configuration to existing native projects. A clean prebuild deletes the selected native directories and generates them again:
+
+```sh
+npx expo-desktop prebuild --platform macos --clean
+```
+
+Commit or back up native edits before using `--clean`. If a native change needs to survive regeneration, express it in app configuration or a config plugin. Removing a key from `infoPlist`, entitlements, or privacy configuration may leave its previously generated value in an existing native project because those files are merged; regenerate cleanly to remove stale values.
+
+Expo Desktop's built-in plugins handle the desktop fields below. An iOS or Android config plugin does not gain desktop support automatically: it must implement the corresponding macOS or Windows mods.
+
+## Configure desktop targets
+
+Desktop settings belong under `expo.macos` and `expo.windows` in `app.json`. Dynamic `app.config.js` or `app.config.ts` files can provide the same values. If a required identifier is missing from a dynamic config, the CLI prints the changes you need to make and stops instead of rewriting your code.
+
+```json title="app.json"
+{
+  "expo": {
+    "name": "MyApp",
+    "slug": "my-app",
+    "version": "1.0.0",
+    "platforms": ["ios", "android", "macos", "windows"],
+    "experiments": {
+      "outOfTreePlatforms": true
+    },
+    "ios": {
+      "infoPlist": {
+        "CFBundleName": "My App"
+      }
+    },
+    "macos": {
+      "bundleIdentifier": "com.example.myapp",
+      "buildNumber": "1",
+      "infoPlist": {
+        "CFBundleName": "My App"
+      }
+    },
+    "windows": {
+      "namespace": "com.example.myapp",
+      "displayName": "My App"
+    }
+  }
+}
+```
+
+The starter sets up desktop platforms and `experiments.outOfTreePlatforms` for you. Keep that experiment enabled so Expo's config reader retains the desktop platform entries.
+
+### macOS fields
+
+These fields are consumed by the default macOS prebuild path:
+
+| Field under `macos` | Type                   | Default and behavior                                                                                                                                                                                                                                     |
+| ------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bundleIdentifier`  | `string`               | Set by `create-app`; prebuild prompts when missing. Writes `PRODUCT_BUNDLE_IDENTIFIER` and the app's bundle identity. Use a reverse domain identifier such as `com.example.myapp`.                                                                       |
+| `infoPlist`         | object of plist values | Merged into the native `Info.plist`. Use native plist key names. Explicit plist values take precedence over corresponding generated values.                                                                                                              |
+| `version`           | `string`               | Falls back to `expo.version`, then `"1.0.0"`. Sets `CFBundleShortVersionString` unless explicitly set in `infoPlist`.                                                                                                                                    |
+| `buildNumber`       | `string`               | `"1"`. Sets `CFBundleVersion` unless explicitly set in `infoPlist`. Increment it for new store builds.                                                                                                                                                   |
+| `deploymentTarget`  | `string`               | Keeps the template's minimum macOS version when omitted. Sets `MACOSX_DEPLOYMENT_TARGET` on the app target and `macos.deploymentTarget` in `Podfile.properties.json`. Your dependencies may require a higher version.                                    |
+| `appleTeamId`       | `string`               | No team is assigned by this field when omitted. Sets the Xcode development team on native targets; it does not install signing credentials.                                                                                                              |
+| `entitlements`      | object of plist values | Merged into the app's entitlements file. Use it for capabilities such as App Sandbox, with the signing and provisioning required by Apple.                                                                                                               |
+| `associatedDomains` | `string[]`             | No domains when omitted. Sets `com.apple.developer.associated-domains` in the entitlements, for example `["applinks:example.com"]`.                                                                                                                      |
+| `scheme`            | `string`               | Combined with root `expo.scheme` and the macOS bundle identifier to populate `CFBundleURLTypes`. An explicit `infoPlist.CFBundleURLTypes` overrides generated URL types.                                                                                 |
+| `bitcode`           | `boolean` or `string`  | Leaves the Xcode setting unchanged when omitted. A boolean sets `ENABLE_BITCODE`; a string enables it for that named build configuration and disables it elsewhere. This is a retained build-setting option, not a requirement for desktop distribution. |
+| `privacyManifests`  | object                 | No manifest added by this field when omitted. Merges a `PrivacyInfo.xcprivacy` file into the Xcode project. Its shape is described below.                                                                                                                |
+
+`infoPlist.CFBundleName` supplies a human-readable name. The normal CLI prebuild resolves a shared display name from the `expo-desktop-config-plugins` plugin's `displayName` option, then `ios.infoPlist.CFBundleName`, then `macos.infoPlist.CFBundleName`, then `expo.name`. If you configure both Apple names, keep them aligned unless you deliberately override `CFBundleDisplayName` in a platform's plist. The macOS product name is derived from `expo.name`.
+
+`privacyManifests` accepts these optional properties:
+
+| Property                      | Type                                                                                                                                                                                                              |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NSPrivacyTracking`           | `boolean`                                                                                                                                                                                                         |
+| `NSPrivacyTrackingDomains`    | `string[]`                                                                                                                                                                                                        |
+| `NSPrivacyAccessedAPITypes`   | Array of objects containing `NSPrivacyAccessedAPIType: string` and `NSPrivacyAccessedAPITypeReasons: string[]`.                                                                                                   |
+| `NSPrivacyCollectedDataTypes` | Array of objects containing `NSPrivacyCollectedDataType: string`, `NSPrivacyCollectedDataTypeLinked: boolean`, `NSPrivacyCollectedDataTypeTracking: boolean`, and `NSPrivacyCollectedDataTypePurposes: string[]`. |
+
+See [Apple's privacy manifest documentation](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files) for the meaning and valid values of those native properties.
+
+Use a single string for `expo.scheme` and `macos.scheme` in the current implementation. Although the scheme helper intends to accept arrays, its array branch currently throws during prebuild. To register several schemes, set `macos.infoPlist.CFBundleURLTypes` explicitly.
+
+The root `expo.locales` field also applies to macOS. Its locale files can include a `macos` object for platform-specific `InfoPlist.strings` values. A `"Localizable.strings"` object nested inside that `macos` object supplies additional localized strings.
+
+### Windows fields
+
+| Field under `windows` | Type          | Default and behavior                                                                                                                                                                                                                          |
+| --------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `namespace`           | `string`      | Derived by `create-app` from the reverse domain identifier, removing hyphens and underscores; prebuild prompts when missing. Use dot-separated identifiers, such as `com.example.myapp`. Applied to the native project namespace.             |
+| `projectGuid`         | UUID `string` | Generated and saved when missing. Identifies the C++ app project; keep it stable across prebuilds.                                                                                                                                            |
+| `packageGuid`         | UUID `string` | Generated and saved when missing. Identifies the Windows packaging project; keep it stable across prebuilds.                                                                                                                                  |
+| `displayName`         | `string`      | Initialized by `create-app`. The lower-level prebuild configuration reads it, falling back to `expo.name`, but the normal CLI prebuild supplies the shared display name described above first. Keep this field aligned with that shared name. |
+
+The Windows plugins update the solution, C++ project, packaging project, manifest, and app window title. Native source/project filenames remain `MyApp` to keep repeated prebuilds consistent.
+
+Windows Store identity and signing settings are not exposed as ordinary `windows` app config fields yet. In particular, adding `windows.version`, `windows.publisher`, `windows.publisherDisplayName`, `windows.description`, or Windows minimum-version keys does not configure the default prebuild. The generated manifest currently defaults to package name `MyApp`, version `1.0.0.0`, and publisher `CN=` followed by the local username. Ordinary prebuild also resets those manifest fields, even without `--clean`. Reapply Store association and package version afterward, or restore them with a custom plugin; see [distribution](/guides/distribution).
+
+### Limits of app config support
+
+The desktop keys above are the supported built-in inventory. Mobile configuration fields are not automatically mirrored to desktop. Desktop icons, splash screens, window dimensions, orientation, and mobile device-family options need native configuration or a desktop-aware plugin.
+
+`macos.jsEngine` and `macos.config.usesNonExemptEncryption` are not applied by the default plugin chain. To declare encryption usage, set `macos.infoPlist.ITSAppUsesNonExemptEncryption` directly. Keep the template's JavaScript engine setup unless you provide and test the native configuration needed to change it.
+
+For implementation details, see the [default desktop plugin registration](https://github.com/shirakaba/expo-desktop/blob/main/packages/expo-desktop-prebuild-config/src/withDefaultPlugins.js) and [prebuild config resolution](https://github.com/shirakaba/expo-desktop/blob/main/packages/expo-desktop-prebuild-config/src/getPrebuildConfig.js).
+
+Once your projects are generated, continue to [run your apps](/guides/run-apps).

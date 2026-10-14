@@ -1,0 +1,74 @@
+---
+title: create-app
+description: Create an Expo app that targets mobile and desktop platforms.
+---
+
+```sh
+npx expo-desktop create-app [project-root] [options]
+```
+
+The command downloads a template, configures the app's names and platform identifiers, installs dependencies unless disabled, generates agent instruction files unless disabled, and attempts to initialize Git.
+
+```sh
+npx expo-desktop create-app MyApp
+```
+
+For a creation command with all naming values supplied:
+
+```sh
+npx expo-desktop create-app MyApp \
+  --display-name "My App" \
+  --rdns com.example.myapp \
+  --template expo-desktop-template-blank-typescript@55.83.9 \
+  --yes
+```
+
+The template version shown uses Expo SDK 55 and React Native 0.83. Template versions encode the Expo SDK in the major number, the React Native minor in the minor number, and template revisions in the patch number.
+
+## Argument
+
+| Argument       | Default                                | Description                                                                                                                                                                     |
+| -------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `project-root` | Prompt; current directory with `--yes` | Destination path. Its final directory name must contain only ASCII letters and digits, such as `MyApp123`. Existing files that would conflict with app creation cause an error. |
+
+The app's file-safe name is the destination directory's name. Do not use a dependency name such as `expo` or `react`.
+
+## Options
+
+| Option                  | Default                                                                                                                   | Description                                                                                                                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--display-name <name>` | Prompt, initially `My App`                                                                                                | Human-readable app name. Spaces and non-Latin characters are allowed.                                                                                                                                  |
+| `--rdns <identifier>`   | Prompt, initially `com.example.my-app`                                                                                    | Reverse DNS identifier used to derive Apple bundle identifiers, the Android package, and the Windows namespace. Use an identifier you control for a distributed app.                                   |
+| `--yes`, `-y`           | Off                                                                                                                       | Choose the latest default template without the version questionnaire. With no destination argument, use the current directory after validating its name and contents. See the prompt limitation below. |
+| `--template <source>`   | Interactive selection from `expo-desktop-template-blank-typescript`; `@latest` with `--yes`, CI, or non-interactive input | Template npm spec, local tarball, or GitHub source. An explicit template takes precedence over `--version`.                                                                                            |
+| `--version <version>`   | Interactive selection                                                                                                     | Template version-prefix selection. See [version selection](#version-selection) before using this option.                                                                                               |
+| `--no-install`          | Off                                                                                                                       | Skip JavaScript dependency and CocoaPods installation. Package manager configuration may still be written. Install the dependencies before prebuilding or running the app.                             |
+| `--no-agents-md`        | Off                                                                                                                       | Skip generating `AGENTS.md`, `CLAUDE.md`, and `.claude/settings.json`.                                                                                                                                 |
+| `--help`, `-h`          | —                                                                                                                         | Show command help.                                                                                                                                                                                     |
+
+### Prompts and package managers
+
+`--yes` does not currently supply a display name or reverse DNS identifier. Missing `--display-name` and `--rdns` values still trigger prompts. Supply the destination and both naming options when automating app creation.
+
+There are no `--npm`, `--yarn`, `--pnpm`, or `--bun` flags for this command. Dependency installation selects the package manager from `npm_config_user_agent`, normally set by the tool that launches the command. Without that value, it checks for Yarn, pnpm, and Bun in that order, then falls back to npm.
+
+```sh
+pnpm dlx expo-desktop create-app MyApp
+bunx expo-desktop create-app MyApp
+```
+
+### Version selection
+
+The current help text describes `--version` as a React Native minor such as `0.80`. The implementation actually searches published template versions for a matching prefix followed by a dot. For the SDK 55 / React Native 0.83 template line, that prefix is `55.83`:
+
+```sh
+npx expo-desktop create-app MyApp --version 55.83
+```
+
+This selection only runs interactively, without `--yes`, CI, or an explicit `--template`. A missing match falls back to the version questionnaire. To select a known template in automation, use an explicit npm spec with `--template`, as in the complete example above.
+
+### Internal development option
+
+`--local-dev` is an internal switch intended for development of Expo Desktop. It replaces the destination, display name, and reverse DNS identifier with hardcoded development values, and enables `--yes`. It is not a general-purpose way to automate app creation. It still honors `--template`, `--version`, `--no-install`, and `--no-agents-md`, subject to the version selection behavior above.
+
+Source: [create-app implementation](https://github.com/shirakaba/expo-desktop/tree/main/packages/expo-desktop/src/create-app).

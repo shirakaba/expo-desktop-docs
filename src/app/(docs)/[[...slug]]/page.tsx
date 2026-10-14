@@ -155,8 +155,7 @@ export async function generateMetadata(
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
-  const description =
-    page.data.description ?? "Documentation from Birchdocs";
+  const description = page.data.description ?? "Documentation for Expo Desktop";
   const image = {
     url: getPageImage(page).url,
     width: 1200,

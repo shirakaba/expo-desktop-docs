@@ -1,0 +1,47 @@
+---
+title: How Expo Desktop works
+description: An adapted Expo toolchain, native desktop templates, and runtime compatibility packages.
+icon: Workflow
+---
+
+Expo Desktop is essentially a vendored fork of the relevant parts of `create-expo-app` and `@expo/cli`, extended to understand macOS and Windows. It also adapts Expo's prebuild configuration and config-plugin infrastructure. Your app still uses Expo and React Native; the extra tooling connects them to the desktop implementations maintained by Microsoft.
+
+## From app creation to a running app
+
+1. **`create-app` selects a compatible template.** The template brings together Expo, React Native, React Native macOS, React Native Windows, desktop support packages, and Metro configuration. The dependency versions are coordinated rather than independently upgraded to latest.
+2. **`prebuild` generates native projects.** It extracts the native template, resolves app configuration, renames the project, and applies the selected platforms' config plugins. The result is an Xcode project under `macos/` and a Windows solution under `windows/`.
+3. **`run macos` or `run windows` invokes native build tools.** macOS builds go through Xcode; Windows builds delegate to React Native Windows tooling. The CLI builds and launches the native application, and can reuse or export build artifacts.
+4. **Metro serves the JavaScript in development.** The project uses Expo's Metro defaults combined with `@rnx-kit/metro-config`. That adds desktop-aware resolution while retaining Expo's mobile and web behavior. An existing Expo server for the project can be reused.
+5. **Release builds embed JavaScript and assets.** They run without a development server. Signing, store packaging, and submission happen through the native platform's distribution tools.
+
+This follows Expo's [Continuous Native Generation](https://docs.expo.dev/workflow/continuous-native-generation/) model: keep repeatable native configuration in app config and plugins, then regenerate the platform projects when needed. Direct native changes need to be preserved in a plugin or maintained outside that regeneration workflow.
+
+## Packages in the project
+
+| Package                                                                                                                     | Role                                                                                 |
+| --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [`expo-desktop`](https://github.com/shirakaba/expo-desktop/tree/main/packages/expo-desktop)                                 | The CLI: app creation, native generation, and local desktop build/run commands.      |
+| [`expo-desktop-config-plugins`](https://github.com/shirakaba/expo-desktop/tree/main/packages/expo-desktop-config-plugins)   | Desktop-aware config plugins and native file modifications.                          |
+| [`expo-desktop-prebuild-config`](https://github.com/shirakaba/expo-desktop/tree/main/packages/expo-desktop-prebuild-config) | Assembles the default plugins used to configure the generated projects.              |
+| [`expo-desktop-metro-config`](https://github.com/shirakaba/expo-desktop/tree/main/packages/expo-desktop-metro-config)       | Combines Expo's Metro configuration with `@rnx-kit/metro-config`.                    |
+| [`expo-desktop-modules-core`](https://github.com/shirakaba/expo-desktop/tree/main/packages/expo-desktop-modules-core)       | A Windows port of Expo Modules Core, including runtime initialization compatibility. |
+| [`expo-desktop-stubs`](https://github.com/shirakaba/expo-desktop/tree/main/packages/expo-desktop-stubs)                     | Targeted Windows native stubs that let an Expo entrypoint initialize.                |
+| [`templates`](https://github.com/shirakaba/expo-desktop/tree/main/templates)                                                | The coordinated app and native-project templates.                                    |
+
+The runtime packages fill specific gaps. A stub allows initialization to proceed; it does not implement the full functionality of the corresponding SDK module. Desktop SDK support still requires an actual implementation for that platform.
+
+## What stays upstream
+
+Use Expo CLI for the usual iOS, Android, and web workflow, including `expo start`, `expo install`, `expo run:ios`, and `expo run:android`. Expo Desktop adds the missing desktop commands instead of introducing a second incompatible app or bundler format.
+
+The generated `metro.config.js` is deliberately small:
+
+```js
+const { makeMetroConfig } = require("expo-desktop-metro-config");
+
+module.exports = makeMetroConfig(__dirname);
+```
+
+Keep this configuration when extending Metro. Replacing it with a mobile-only configuration removes the desktop integration.
+
+See [supported scope](/scope) for the boundaries, [prebuild](/guides/prebuild) for the configuration surface, and the [source repository](https://github.com/shirakaba/expo-desktop) for the implementation and upstream licences.

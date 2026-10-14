@@ -6,10 +6,11 @@ import { source } from "@/lib/source";
 
 export const metadata = createMetadata({
   title: {
-    template: "%s | Birchdocs",
-    default: "Birchdocs",
+    template: "%s | Expo Desktop",
+    default: "Expo Desktop",
   },
-  description: "Jamie Birch's personal docs site",
+  description:
+    "Documentation for creating, building, and shipping Expo apps on macOS and Windows.",
 });
 
 export default function Layout({ children }: LayoutProps<"/">) {
@@ -17,7 +18,7 @@ export default function Layout({ children }: LayoutProps<"/">) {
     <DocsLayout
       tree={source.pageTree}
       {...baseOptions()}
-      githubUrl="https://github.com/shirakaba/birch-docs"
+      githubUrl="https://github.com/shirakaba/expo-desktop"
     >
       {children}
     </DocsLayout>

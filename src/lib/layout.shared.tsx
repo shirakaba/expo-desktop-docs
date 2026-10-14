@@ -1,38 +1,20 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
-import Image from "next/image";
+import { DesktopLogo } from "@/components/desktop-logo";
 
-import Logo from "@/public/favicon-ambi.png";
+export const logo = <DesktopLogo width={30} height={30} className="shrink-0" />;
 
-// https://github.com/fuma-nama/fumadocs/blob/6c3bde5b4d95c9fd854815be9d94968ac6a39c18/apps/docs/lib/layout.shared.tsx#L39C1-L51C3
-// https://www.flaticon.com/free-icon/birch-tree_1846071?related_id=1846074&origin=search
-export const logo = (
-  <Image
-    width="20"
-    height="20"
-    src={Logo}
-    alt="Logo"
-    className="rounded-full bg-white/25 ring ring-black/10 dark:bg-black/25 dark:ring-white/15"
-  />
-);
-
-/**
- * Shared layout configurations
- *
- * you can customise layouts individually from:
- * Home Layout: app/(home)/layout.tsx
- * Docs Layout: app/docs/layout.tsx
- */
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       title: (
         <>
           {logo}
-          <span className="font-medium [header_&]:text-[15px]">Birchdocs</span>
+          <span className="font-semibold tracking-tight [header_&]:text-[15px]">
+            Expo Desktop
+          </span>
         </>
       ),
     },
-    // see https://fumadocs.dev/docs/ui/navigation/links
-    links: [],
+    links: [{ text: "Ecosystem", url: "/ecosystem", on: "nav" }],
   };
 }
