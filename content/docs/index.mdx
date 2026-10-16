@@ -1,12 +1,20 @@
 ---
-title: About Expo Desktop
-description: Bring your Expo app to macOS and Windows, alongside iOS, Android, and Web.
+title: About
+<!-- description: Bring your Expo app to macOS and Windows, alongside iOS, Android, and Web. -->
 icon: MonitorSmartphone
 ---
 
-Expo Desktop adds best-effort macOS and Windows support to Expo. It creates apps with compatible dependencies, generates native desktop projects from your app config, and builds and runs them locally using [React Native macOS](https://github.com/microsoft/react-native-macos) and [React Native Windows](https://microsoft.github.io/react-native-windows/).
+Expo Desktop adds **best-effort macOS and Windows support** to Expo apps. It is a project by [Jamie Birch](https://github.com/shirakaba), not endorsed or maintained by Expo.
 
-You keep the Expo development workflow: React and TypeScript, Metro, and Continuous Native Generation (CNG). Expo Desktop extends the parts that need to understand desktop platforms, and provides supporting packages including a Windows port of Expo Modules Core. It is a community project maintained by [Jamie Birch](https://github.com/shirakaba), independent of Expo.
+Here's how it works:
+
+- [`npx expo-desktop create-app`](/cli/create-app) sets you up with a new Expo app correctly configured to use [React Native](https://reactnative.dev) alongside [React Native macOS](https://microsoft.github.io/react-native-macos/) and [React Native Windows](https://microsoft.github.io/react-native-windows/).
+
+- [`npx expo-desktop prebuild`](/cli/prebuild) creates a [development build](https://docs.expo.dev/develop/development-builds/introduction/?buildenv=build-with-eas) and lets you adopt [Continuous Native Generation (CNG)](https://docs.expo.dev/workflow/continuous-native-generation/) (so you can avoid source-controlling your `macos` and `windows` folders).
+
+- [`npx expo-desktop run macos`](/cli/run-macos) / [`npx expo-desktop run windows`](/cli/run-windows) builds and runs your macOS or Windows app.
+
+These features mirror Expo's [`create-expo-app`](https://docs.expo.dev/more/create-expo/), [`expo prebuild`](https://docs.expo.dev/guides/adopting-prebuild/#prebuild), and [`expo run:ios` / `expo run:android`](https://docs.expo.dev/more/expo-cli/#compiling) commands, and broadly accept the same arguments.
 
 ## Start here
 
