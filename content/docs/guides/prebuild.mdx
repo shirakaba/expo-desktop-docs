@@ -4,30 +4,73 @@ description: Generate native projects from app configuration and config plugins.
 icon: Hammer
 ---
 
-Prebuild turns your Expo app configuration and dependencies into native projects. Expo Desktop extends this process to `macos/` and `windows/`, alongside Expo's `ios/` and `android/` projects.
+Expo Desktop fully implements [Expo Prebuild](https://docs.expo.dev/workflow/continuous-native-generation/#usage) for macOS and Windows (in addition to Android and iOS), allowing you to generate the Xcode and MSBuild projects (i.e. the `macos` and `windows` folders) based on the contents of your `app.json` and adopt [Continuous Native Generation (CNG)](https://docs.expo.dev/workflow/continuous-native-generation/).
 
-## Generate native projects
+## Running the prebuild
 
-Run the command from your app's root directory:
+Run the command from your app's root directory to prebuild all platforms:
 
-```npm
-npx expo-desktop prebuild
+```sh
+node --run prebuild
 ```
 
-Without a platform flag, this requests all four native platforms. The selection is narrowed to matching entries in `expo.platforms` when possible. On Windows, iOS and macOS generation is skipped.
+This generates the `android`, `ios`, `macos`, and `windows` folders, as supported (some prebuild operations require native build toolchains, so, for example, you can't prebuild for iOS or macOS on Windows. If an incompatible target is requested, it will be skipped).
 
-Generate just the target you are working on:
+## Specifying platforms (`--platform`)
 
-```npm
-npx expo-desktop prebuild --platform macos
-npx expo-desktop prebuild --platform windows
+You can prebuild just a subset of the platforms if preferred, though:
+
+```sh
+# Individual platforms
+node --run prebuild -- --platform android
+node --run prebuild -- --platform ios
+node --run prebuild -- --platform macos
+node --run prebuild -- --platform windows
+
+# macOS and Windows
+node --run prebuild -- --platform desktop
+
+# iOS and Android
+node --run prebuild -- --platform mobile
+
+# All platforms configured in app.json
+node --run prebuild
+
+# All platforms, unconditionally
+node --run prebuild -- --platform all
 ```
 
-`--platform desktop` requests both desktop projects; `--platform mobile` requests iOS and Android. You can also use `--platform all`. See the [prebuild reference](/cli/prebuild) for all flags, including installation and template options.
+## Clean prebuilds (`--clean`)
 
-Building still requires each platform's toolchain: macOS builds run on macOS with Xcode, and Windows builds run on Windows with Visual Studio.
+A "clean" prebuild is when the native folder (e.g. `macos`, `windows`, etc.) is deleted and the config plugins are run upon a "clean" template, rather than reusing the existing "dirty" template.
 
-## How prebuild works
+```sh
+node --run prebuild -- --clean
+```
+
+## Skipping installs (`--no-install`)
+
+Skip the install of npm packages and CocoaPods pods. This is mainly useful when developing your own custom config plugin, to avoid an unnecessary wait for the results of the prebuild.
+
+```sh
+node --run prebuild -- --no-install
+```
+
+## Installing with a specific package manager (`--npm`, `--yarn`, `--bun`, `--pnpm`)
+
+Running a prebuild may sometimes result in node modules being installed. This flag lets you specify which package manager to use:
+
+```sh
+node --run prebuild -- --bun
+```
+
+By default, it chooses the appropriate package manager based on an existing lockfile (e.g. it will choose Bun if it finds a `bun.lock`), though. So this flag is only really relevant in the unusual case that no lockfile is present.
+
+## Specifying a prebuild template (`--template`)
+
+TODO
+
+## Prebuild
 
 Expo Desktop follows Expo's [Continuous Native Generation](https://docs.expo.dev/workflow/continuous-native-generation/) model. Your app configuration, dependencies, native template, and config plugins describe the native project:
 
