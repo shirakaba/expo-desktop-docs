@@ -15,6 +15,5 @@ export function baseOptions(): BaseLayoutProps {
         </>
       ),
     },
-    links: [{ text: "Ecosystem", url: "/ecosystem", on: "nav" }],
   };
 }
