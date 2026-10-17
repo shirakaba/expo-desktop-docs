@@ -1,0 +1,104 @@
+---
+title: Prerequisites
+description: How to set up your environment.
+icon: Wrench
+---
+
+Choose the operating system of your development machine and the platform you want to build for.
+
+<Environment>
+
+<EnvironmentContent os="macos">
+
+<EnvironmentContent platform={["macos", "ios"]}>
+
+To develop for Apple platforms (the setup is the same for both iOS and macOS), you need to set up your environment with Node.js, Watchman, CocoaPods, and Xcode.
+
+Any of these guides work equally well:
+
+- Expo's iOS setup [docs](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&buildEnv=local&platform=ios&device=physical)
+- Meta's React Native iOS setup [docs](https://reactnative.dev/docs/set-up-your-environment?platform=ios&os=macos)
+- Microsoft's React Native macOS setup [docs](https://microsoft.github.io/react-native-macos/docs/getting-started)
+
+</EnvironmentContent>
+
+<EnvironmentContent platform="android">
+
+To develop for Android, you will need Node.js, Watchman, a JDK, and Android Studio.
+
+Any of these guides work equally well:
+
+- Expo's Android setup [docs](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&buildEnv=local&platform=android&device=physical)
+- Meta's React Native Android setup [docs](https://reactnative.dev/docs/set-up-your-environment?platform=android&os=macos)
+
+</EnvironmentContent>
+
+<EnvironmentContent platform="windows">
+
+You can't natively develop for Windows on macOS. I recommend developing using an ARM Windows VM, via [Parallels](https://www.parallels.com). Once you have your VM set up, follow the instructions for `Development OS: Windows`.
+
+</EnvironmentContent>
+
+</EnvironmentContent>
+
+<EnvironmentContent os="windows">
+
+<EnvironmentContent platform={["macos", "ios"]}>
+  You can't natively develop for Apple platforms on Windows.
+</EnvironmentContent>
+
+<EnvironmentContent platform="android">
+
+To develop for Android, you will need Node.js, Watchman, a JDK, and Android Studio.
+
+Any of these guides work equally well:
+
+- Expo's Android setup [docs](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&buildEnv=local&platform=android&device=physical)
+- Meta's React Native Android setup [docs](https://reactnative.dev/docs/set-up-your-environment?platform=android&os=windows)
+
+</EnvironmentContent>
+
+<EnvironmentContent platform="windows">
+
+To develop for Windows, you will need to have enabled Developer Mode and have installed Node.js, Visual Studio 2022, and various build tools.
+
+This is all covered in Microsoft's React Native Windows setup [docs](https://microsoft.github.io/react-native-windows/docs/rnw-dependencies/).
+
+<Callout type="warn">
+  I find the React Native Windows automatic setup script to be a bit buggy, at
+  least on ARM Windows. If you have any problems with it, follow the manual
+  setup instructions instead. And if you still run into issues after that,
+  please search through the Expo Desktop
+  [issues](https://github.com/shirakaba/expo-desktop/issues) – I have filed
+  solutions to every problem I had setting up my own environment.
+</Callout>
+
+</EnvironmentContent>
+
+</EnvironmentContent>
+
+<EnvironmentContent os="linux">
+
+<EnvironmentContent platform={["macos", "ios"]}>
+  You can't natively develop for Apple platforms on Linux.
+</EnvironmentContent>
+
+<EnvironmentContent platform="windows">
+  You can't natively develop for Windows on Linux. I would recommend running
+  Windows in a VM, and following the Windows instructions.
+</EnvironmentContent>
+
+<EnvironmentContent platform="android">
+
+To develop for Android, you will need Node.js, Watchman, a JDK, and Android Studio.
+
+Any of these guides work equally well:
+
+- Expo's Android setup [docs](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&buildEnv=local&platform=android&device=physical)
+- Meta's React Native Android setup [docs](https://reactnative.dev/docs/set-up-your-environment?platform=android&os=linux)
+
+</EnvironmentContent>
+
+</EnvironmentContent>
+
+</Environment>

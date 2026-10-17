@@ -1,4 +1,10 @@
 {
   "title": "Guides",
-  "pages": ["create-app", "prebuild", "run-apps", "distribution"]
+  "pages": [
+    "prerequisites",
+    "create-app",
+    "prebuild",
+    "run-apps",
+    "distribution"
+  ]
 }

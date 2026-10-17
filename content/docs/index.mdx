@@ -1,66 +1,33 @@
 ---
 title: About
-<!-- description: Bring your Expo app to macOS and Windows, alongside iOS, Android, and Web. -->
+# description: Bring your Expo app to macOS and Windows, alongside iOS, Android, and Web.
 icon: MonitorSmartphone
 ---
 
 Expo Desktop adds **best-effort macOS and Windows support** to Expo apps. It is an independent project by [Jamie Birch](https://github.com/shirakaba), not endorsed or maintained by Expo.
 
-It consists of the `expo-desktop` CLI, plus several supporting libraries (like `expo-desktop-config-plugins`), that together allow you to create an app and run it for iOS, Android, Web, macOS, and Windows.
+It consists of the [`expo-desktop`](/cli) CLI, plus several supporting libraries (like `expo-desktop-config-plugins`), that together allow you to create an app and run it for iOS, Android, Web, macOS, and Windows.
 
-<!--
+## Quickstart
 
-Here's how it works:
+After following the [prerequisites](/guides/prerequisites), create an app like so:
 
-- [`npx expo-desktop create-app`](/cli/create-app) sets you up with a new Expo app correctly configured to use [React Native](https://reactnative.dev) alongside [React Native macOS](https://microsoft.github.io/react-native-macos/) and [React Native Windows](https://microsoft.github.io/react-native-windows/).
+```npm
+# Create the app.
+npx expo-desktop@latest create-app
 
-- [`npx expo-desktop prebuild`](/cli/prebuild) generates a [development build](https://docs.expo.dev/develop/development-builds/introduction/?buildenv=build-with-eas) and lets you adopt [Continuous Native Generation (CNG)](https://docs.expo.dev/workflow/continuous-native-generation/) (so you can avoid source-controlling your `macos` and `windows` folders).
-
-- [`npx expo-desktop run macos`](/cli/run-macos) / [`npx expo-desktop run windows`](/cli/run-windows) builds and runs your macOS or Windows app.
-
-These features mirror Expo's [`create-expo-app`](https://docs.expo.dev/more/create-expo/), [`expo prebuild`](https://docs.expo.dev/guides/adopting-prebuild/#prebuild), and [`expo run:ios` / `expo run:android`](https://docs.expo.dev/more/expo-cli/#compiling) commands, and broadly accept the same arguments.
-
--->
-
-## Start here
-
-```bash
-npx expo-desktop@latest create-app MyApp
 cd MyApp
-npx expo-desktop prebuild --platform desktop
+
+# Generate the Xcode, Gradle, and MSBuild projects.
+node --run prebuild
 ```
 
-Then build and run the desktop target on its host operating system:
+Then run your chosen target!
 
-```bash
-# On macOS
-npx expo-desktop run macos
-
-# On Windows
-npx expo-desktop run windows
+```sh
+node --run ios
+node --run android
+node --run web
+node --run macos
+node --run windows
 ```
-
-Native builds need Xcode on macOS or the React Native Windows toolchain on Windows. The [create an app guide](/guides/create-app) covers setup and the initial prompts.
-
-<Cards>
-  <Card title="Create an app" href="/guides/create-app" icon="FolderPlus">
-    Set up a project with the supported Expo SDK and React Native versions.
-  </Card>
-  <Card title="Generate native projects" href="/guides/prebuild" icon="Layers">
-    Use prebuild and configure the macOS and Windows targets.
-  </Card>
-  <Card title="Run your app" href="/guides/run-apps" icon="Play">
-    Build in Debug or Release and share one Expo Metro server.
-  </Card>
-  <Card title="Distribute your app" href="/guides/distribution" icon="Package">
-    Prepare, sign, and submit desktop builds to the stores.
-  </Card>
-</Cards>
-
-## Know the boundaries
-
-The supported version line is **Expo SDK 55 with React Native 0.83**. React Native, React Native macOS, and React Native Windows must share a compatible minor version, so the latest Expo SDK is not necessarily usable. See [version compatibility](/guides/create-app#why-expo-sdk-55).
-
-Desktop support is best-effort. An Expo or React Native library working on iOS and Android does not establish that it works on desktop. EAS Build, EAS Submit, EAS Update, and Expo Go are not supported desktop workflows. Read [supported scope](/scope) before choosing dependencies or planning distribution.
-
-For command options, see the [CLI reference](/cli). For the implementation, see [how Expo Desktop works](/how-it-works), or explore the [ecosystem](/ecosystem).
