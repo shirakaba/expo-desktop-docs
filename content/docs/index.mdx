@@ -4,17 +4,23 @@ title: About
 icon: MonitorSmartphone
 ---
 
-Expo Desktop adds **best-effort macOS and Windows support** to Expo apps. It is a project by [Jamie Birch](https://github.com/shirakaba), not endorsed or maintained by Expo.
+Expo Desktop adds **best-effort macOS and Windows support** to Expo apps. It is an independent project by [Jamie Birch](https://github.com/shirakaba), not endorsed or maintained by Expo.
+
+It consists of the `expo-desktop` CLI, plus several supporting libraries (like `expo-desktop-config-plugins`), that together allow you to create an app and run it for iOS, Android, Web, macOS, and Windows.
+
+<!--
 
 Here's how it works:
 
 - [`npx expo-desktop create-app`](/cli/create-app) sets you up with a new Expo app correctly configured to use [React Native](https://reactnative.dev) alongside [React Native macOS](https://microsoft.github.io/react-native-macos/) and [React Native Windows](https://microsoft.github.io/react-native-windows/).
 
-- [`npx expo-desktop prebuild`](/cli/prebuild) creates a [development build](https://docs.expo.dev/develop/development-builds/introduction/?buildenv=build-with-eas) and lets you adopt [Continuous Native Generation (CNG)](https://docs.expo.dev/workflow/continuous-native-generation/) (so you can avoid source-controlling your `macos` and `windows` folders).
+- [`npx expo-desktop prebuild`](/cli/prebuild) generates a [development build](https://docs.expo.dev/develop/development-builds/introduction/?buildenv=build-with-eas) and lets you adopt [Continuous Native Generation (CNG)](https://docs.expo.dev/workflow/continuous-native-generation/) (so you can avoid source-controlling your `macos` and `windows` folders).
 
 - [`npx expo-desktop run macos`](/cli/run-macos) / [`npx expo-desktop run windows`](/cli/run-windows) builds and runs your macOS or Windows app.
 
 These features mirror Expo's [`create-expo-app`](https://docs.expo.dev/more/create-expo/), [`expo prebuild`](https://docs.expo.dev/guides/adopting-prebuild/#prebuild), and [`expo run:ios` / `expo run:android`](https://docs.expo.dev/more/expo-cli/#compiling) commands, and broadly accept the same arguments.
+
+-->
 
 ## Start here
 
