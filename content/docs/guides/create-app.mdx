@@ -26,7 +26,7 @@ The macOS target must be built on macOS; the Windows target must be built on Win
 
 Run this in the directory that should contain your new app:
 
-```sh
+```npm
 npx expo-desktop@latest create-app MyApp
 cd MyApp
 ```
@@ -35,7 +35,7 @@ The command asks for your app's display name, reverse domain identifier, and tem
 
 You can supply the names yourself:
 
-```sh
+```npm
 npx expo-desktop@latest create-app MyApp --display-name "My App" --rdns com.example.myapp
 ```
 
@@ -51,7 +51,7 @@ Expo Desktop currently targets **Expo SDK 55 and React Native 0.83**. An app nee
 
 When prompted, select the SDK 55 / React Native 0.83 template. You can request SDK 55 with `--version 55` in an interactive terminal, or choose the template's SDK 55 release line explicitly:
 
-```sh
+```npm
 npx expo-desktop@latest create-app MyApp --template expo-desktop-template-blank-typescript@55
 ```
 
@@ -69,13 +69,13 @@ The default starter is `expo-desktop-template-blank-typescript`. It gives you a 
 
 From the app directory, generate the desktop project you need:
 
-```sh
+```npm
 # On macOS
 npx expo-desktop prebuild --platform macos
 npx expo-desktop run macos
 ```
 
-```powershell
+```npm
 # On Windows
 npx expo-desktop prebuild --platform windows
 npx expo-desktop run windows

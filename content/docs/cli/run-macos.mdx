@@ -3,13 +3,13 @@ title: run macos
 description: Build and launch an Expo Desktop app on macOS.
 ---
 
-```sh
+```npm
 npx expo-desktop run macos [project-root] [options]
 ```
 
 Requires macOS with Xcode and the app's native dependencies installed. The target is always the current Mac; there is no device or simulator selector. If the `macos` folder is missing, the command attempts to prebuild it first.
 
-```sh
+```npm
 npx expo-desktop run macos
 npx expo-desktop run macos --configuration Release --no-bundler --output ./dist/macos
 ```
@@ -48,7 +48,7 @@ In the current implementation, selecting `Debug` forces the bundler-start path e
 
 ## Reusing a binary
 
-```sh
+```npm
 npx expo-desktop run macos \
   --configuration Release \
   --binary ./dist/macos/MyApp.app \

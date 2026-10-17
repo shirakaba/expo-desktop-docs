@@ -3,13 +3,13 @@ title: run windows
 description: Build, deploy, and launch an Expo Desktop app on Windows.
 ---
 
-```sh
+```npm
 npx expo-desktop run windows [project-root] [options]
 ```
 
 Requires Windows with Visual Studio and the React Native Windows development dependencies installed. The target is always the current Windows machine. If the `windows` folder is missing, the command attempts to prebuild it first.
 
-```sh
+```npm
 npx expo-desktop run windows
 npx expo-desktop run windows --configuration Release --no-launch --output ./dist/windows
 ```
@@ -55,7 +55,7 @@ The CLI selects Metro's port and passes the chosen value through `RCT_METRO_PORT
 
 ## Artifact reuse
 
-```sh
+```npm
 npx expo-desktop run windows \
   --configuration Release \
   --arch x64 \

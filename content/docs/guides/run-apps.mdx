@@ -10,12 +10,12 @@ Run desktop targets with Expo Desktop. Continue using Expo CLI for iOS, Android,
 
 From your app's root directory, run the command for your host platform:
 
-```sh
+```npm
 # On macOS, with Xcode installed
 npx expo-desktop run macos
 ```
 
-```powershell
+```npm
 # On Windows, with Visual Studio and the RNW dependencies installed
 npx expo-desktop run windows
 ```
@@ -30,7 +30,7 @@ The commands target your current Mac or Windows computer. There is no desktop si
 
 You can start your development server separately:
 
-```sh
+```npm
 npx expo start
 ```
 
@@ -48,7 +48,7 @@ module.exports = makeMetroConfig(__dirname);
 
 The default port is `8081`. If you start Expo on a custom port, pass the same port when running the desktop app:
 
-```sh
+```npm
 # First terminal
 npx expo start --port 8082
 
@@ -64,11 +64,11 @@ On Windows, use `npx expo-desktop run windows --port 8082` in the second termina
 
 Use the exact configuration name `Release` to build with a production JavaScript bundle:
 
-```sh
+```npm
 npx expo-desktop run macos --configuration Release --no-bundler
 ```
 
-```powershell
+```npm
 npx expo-desktop run windows --configuration Release
 ```
 
@@ -76,11 +76,11 @@ Release builds embed their JavaScript bundle and do not need a running Metro ser
 
 To copy the outputs somewhere convenient:
 
-```sh
+```npm
 npx expo-desktop run macos --configuration Release --no-bundler --output ./dist/macos
 ```
 
-```powershell
+```npm
 npx expo-desktop run windows --configuration Release --no-launch --output ./dist/windows
 ```
 

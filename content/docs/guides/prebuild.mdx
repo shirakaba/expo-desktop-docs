@@ -10,7 +10,7 @@ Prebuild turns your Expo app configuration and dependencies into native projects
 
 Run the command from your app's root directory:
 
-```sh
+```npm
 npx expo-desktop prebuild
 ```
 
@@ -18,7 +18,7 @@ Without a platform flag, this requests all four native platforms. The selection 
 
 Generate just the target you are working on:
 
-```sh
+```npm
 npx expo-desktop prebuild --platform macos
 npx expo-desktop prebuild --platform windows
 ```
@@ -39,7 +39,7 @@ Expo Desktop follows Expo's [Continuous Native Generation](https://docs.expo.dev
 
 A normal prebuild applies configuration to existing native projects. A clean prebuild deletes the selected native directories and generates them again:
 
-```sh
+```npm
 npx expo-desktop prebuild --platform macos --clean
 ```
 

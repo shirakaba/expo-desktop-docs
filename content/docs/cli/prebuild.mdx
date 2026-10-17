@@ -3,13 +3,13 @@ title: prebuild
 description: Generate native projects and apply the Expo app configuration.
 ---
 
-```sh
+```npm
 npx expo-desktop prebuild [options]
 ```
 
 Run this command from the app root. It copies missing native project folders from a template, updates dependencies when necessary, and applies app configuration and config plugins to the selected native projects. Existing folders are updated in place unless `--clean` is supplied.
 
-```sh
+```npm
 npx expo-desktop prebuild --platform desktop
 npx expo-desktop prebuild --platform macos --clean
 npx expo-desktop prebuild --platform windows --no-install
@@ -60,7 +60,7 @@ The help text also presents `--skip-dependency-update` as a string option, but i
 
 Without `--template`, prebuild first tries the Expo Desktop source template when running from its monorepo, then an installed `expo-desktop-template-bare-minimum` dependency relative to the app. It falls back to downloading that package for the Expo SDK major, or `@latest` when the SDK version is unspecified.
 
-```sh
+```npm
 npx expo-desktop prebuild --platform desktop \
   --template expo-desktop-template-bare-minimum@55.83.9
 

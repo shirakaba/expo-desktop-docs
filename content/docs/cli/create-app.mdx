@@ -3,19 +3,19 @@ title: create-app
 description: Create an Expo app that targets mobile and desktop platforms.
 ---
 
-```sh
+```npm
 npx expo-desktop create-app [project-root] [options]
 ```
 
 The command downloads a template, configures the app's names and platform identifiers, installs dependencies unless disabled, generates agent instruction files unless disabled, and attempts to initialize Git.
 
-```sh
+```npm
 npx expo-desktop create-app MyApp
 ```
 
 For a creation command with all naming values supplied:
 
-```sh
+```npm
 npx expo-desktop create-app MyApp \
   --display-name "My App" \
   --rdns com.example.myapp \
@@ -52,16 +52,15 @@ The app's file-safe name is the destination directory's name. Do not use a depen
 
 There are no `--npm`, `--yarn`, `--pnpm`, or `--bun` flags for this command. Dependency installation selects the package manager from `npm_config_user_agent`, normally set by the tool that launches the command. Without that value, it checks for Yarn, pnpm, and Bun in that order, then falls back to npm.
 
-```sh
-pnpm dlx expo-desktop create-app MyApp
-bunx expo-desktop create-app MyApp
+```npm
+npx expo-desktop create-app MyApp
 ```
 
 ### Version selection
 
 The current help text describes `--version` as a React Native minor such as `0.80`. The implementation actually searches published template versions for a matching prefix followed by a dot. For the SDK 55 / React Native 0.83 template line, that prefix is `55.83`:
 
-```sh
+```npm
 npx expo-desktop create-app MyApp --version 55.83
 ```
 
