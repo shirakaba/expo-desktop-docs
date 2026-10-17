@@ -4,6 +4,7 @@
     "prerequisites",
     "create-app",
     "prebuild",
+    "app-config",
     "run-apps",
     "distribution"
   ]
