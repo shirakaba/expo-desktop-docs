@@ -4,10 +4,14 @@ import { icons } from "lucide-react";
 import type { MDXComponents } from "mdx/types";
 import { createElement, type ReactNode } from "react";
 
+import { Environment, EnvironmentContent } from "@/components/environment";
+
 // use this function to get MDX components, you will need it for rendering MDX
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
     ...defaultMdxComponents,
+    Environment,
+    EnvironmentContent,
 
     // Similarly to `src/lib/source.ts`, if we get a string-based icon prop,
     // look it up from the lucide-react icons for convenience.
