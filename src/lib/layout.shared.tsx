@@ -9,7 +9,7 @@ export function baseOptions(): BaseLayoutProps {
       title: (
         <>
           {logo}
-          <span className="font-semibold tracking-tight [header_&]:text-[15px]">
+          <span className="font-semibold tracking-tight in-[header]:text-[15px]">
             Expo Desktop
           </span>
         </>
