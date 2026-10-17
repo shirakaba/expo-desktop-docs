@@ -1,84 +1,58 @@
 ---
-title: Create an app
-description: Start an Expo project with iOS, Android, macOS, and Windows targets.
+title: Creating an app
 icon: FolderPlus
 ---
 
-Use Expo Desktop's `create-app` command to create a project with the dependencies, Metro configuration, and app identifiers needed for desktop alongside iOS and Android.
-
-## Before you start
-
-Install Node.js and a package manager. Use a Node.js release supported by Expo SDK 55, such as Node.js 22.13 or later in the 22.x line, or 24.3 or later in the 24.x line. See [Expo's SDK 55 requirements](https://expo.dev/changelog/sdk-55#tool-version-bumps).
-
-You also need the native development tools for each platform you intend to build:
-
-| Target          | Development machine and tools                                                                                                                                                                                                                                                        |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| macOS           | A Mac with Xcode, its command line tools, and CocoaPods. Follow [React Native macOS setup](https://microsoft.github.io/react-native-macos/docs/getting-started).                                                                                                                     |
-| Windows         | Windows with Visual Studio 2026, the Desktop development with C++ workload, MSVC v145 tools, and the Windows SDK. Enable Developer Mode and install the remaining [React Native Windows dependencies](https://microsoft.github.io/react-native-windows/docs/0.83/rnw-dependencies/). |
-| iOS and Android | Follow [Expo's local development environment setup](https://docs.expo.dev/guides/local-app-development/).                                                                                                                                                                            |
-
-Expo Desktop's current Windows template and Expo Modules Core project require the v145 toolset supplied by [Visual Studio 2026](https://learn.microsoft.com/en-us/cpp/overview/what-s-new-for-msvc). The upstream React Native Windows 0.83 checklist still names Visual Studio 2022; use Visual Studio 2026 for Expo Desktop and follow the checklist for the other dependencies. Install the ARM64 C++ tools too if you intend to build for ARM64.
-
-The macOS target must be built on macOS; the Windows target must be built on Windows. Creating the JavaScript project does not install either native toolchain.
-
-## Create the project
-
-Run this in the directory that should contain your new app:
+Create an Expo Desktop app via:
 
 ```npm
-npx expo-desktop@latest create-app MyApp
-cd MyApp
+npx expo-desktop@latest create-app
 ```
 
-The command asks for your app's display name, reverse domain identifier, and template version when those values have not already been supplied. The project folder name is used as its file-safe name, so use an alphanumeric name such as `MyApp`. The display name can contain spaces and other characters.
+<Callout type="info" style={{ marginTop: "2em" }}>
 
-You can supply the names yourself:
+You can skip the questions by passing the following CLI flags:
 
 ```npm
-npx expo-desktop@latest create-app MyApp --display-name "My App" --rdns com.example.myapp
+npx expo-desktop@latest create-app MyApp \
+  --display-name "My App" \
+  --rdns com.example.my-app-123 \
+  --template expo-template-blank-typescript@sdk-55
 ```
 
-`com.example.myapp` is an example: replace it with an identifier for your own app. Expo Desktop derives the Apple bundle identifiers, Android package, and Windows namespace from it, sanitizing characters where each platform requires it. It also generates and saves the Windows project and packaging GUIDs.
+</Callout>
 
-The command downloads the template, installs dependencies by default, writes the app configuration, and initializes a Git repository when possible. It generates agent instruction files unless you pass `--no-agents-md`.
+## Template (`--template`)
 
-## Why Expo SDK 55?
+You will be presented with a list of supported templates, for example:
 
-Expo Desktop currently targets **Expo SDK 55 and React Native 0.83**. An app needs a React Native minor version shared by `react-native`, `react-native-macos`, and `react-native-windows`. The desktop support line used by Expo Desktop is 0.83, so the lowest common supported minor version limits the SDK we can use.
+- Expo SDK 55, React Native 0.83 (template v55.83.9)
+- Expo SDK 54, React Native 0.81 (template v54.81.5)
 
-[Expo SDK 55 uses React Native 0.83](https://expo.dev/changelog/sdk-55). Newer Expo SDKs target newer React Native versions; installing the latest SDK independently would break that alignment. Keep the template's React, React Native, and desktop package versions together when updating dependencies. Patch versions can differ between the three React Native packages; their `0.83` minor line is what must agree.
+Generally, newer is better, but we offer older templates as well, just in case you hit unexpected difficulties with newer ones, as they may be less mature (i.e. have received less battle-testing by Microsoft).
 
-When prompted, select the SDK 55 / React Native 0.83 template. You can request SDK 55 with `--version 55` in an interactive terminal, or choose the template's SDK 55 release line explicitly:
+You may notice that Expo Desktop template versions lag behind latest Expo / React Native a fair bit (say, by a whole year). This is because we need to align on the lowest common denominator between React Native macOS and React Native Windows, which both lag behind React Native. We are optimistic that the situation will become better in future, though!
 
-```npm
-npx expo-desktop@latest create-app MyApp --template expo-desktop-template-blank-typescript@55
-```
+## Filesafe name (variadic arg)
 
-Template versions encode both compatibility dimensions: `55.83.x` means Expo SDK 55, React Native 0.83, and template patch `x`. In non-interactive mode, `--yes` selects the latest template; use an explicit `--template` package version when your automation must stay on a particular release.
+This is the name used for files and folders. By default, it is `MyApp`, and gets used for paths such as `MyApp-macOS/MyApp.entitlements`.
 
-## Templates
+We restrict it to alphanumerics.
 
-The default starter is `expo-desktop-template-blank-typescript`. It gives you a small TypeScript app and a desktop-compatible Metro configuration. Its native projects are generated in the next step.
+## Display name (`--display-name`)
 
-`expo-desktop-template-bare-minimum` is the native project template used by prebuild. The blank starter depends on the appropriate version of it so generated native projects match the app's dependencies.
+This is the name used for user-facing purposes. By default, it is `My App`, and gets used for the app's filename (e.g. `My App.app` and `My App.exe`), and as the name on app stores, etc.
 
-`--template` also accepts a custom npm template package, a local npm tarball, or a supported GitHub template URL. A custom starter must include the dependencies and configuration required for desktop. The stock `create-expo-app` templates do not provide that desktop setup automatically. See the [create-app reference](/cli/create-app) for every option.
+If an explicit window title is not specified in your `app.json`, this value is used as a fallback.
 
-## Generate and run the native app
+The display name is an unrestricted string; it accepts any characters (e.g. CJK, spaces, and more). It's unknown whether any characters are problematic, so make sure to test.
 
-From the app directory, generate the desktop project you need:
+## Reverse Domain Name Specifier (`--rdns`)
 
-```npm
-# On macOS
-npx expo-desktop prebuild --platform macos
-npx expo-desktop run macos
-```
+This is a DNS in reverse. By default, it is `com.example.my-app`, and gets used for:
 
-```npm
-# On Windows
-npx expo-desktop prebuild --platform windows
-npx expo-desktop run windows
-```
+- the iOS and macOS **bundle identifiers** (transformed to `com.example.my-app`).
+- the Android **application ID** and **package namespace** (transformed to `com.example.my_app`).
+- the Windows namespaces for WinRT (transformed to `com.example.myapp`) and C++ (transformed to `com::example::myapp`).
 
-Use [prebuild](/guides/prebuild) to understand native project generation, then [run your apps](/guides/run-apps) for development and release builds.
+You can use alphanumerics, periods (`.`), and hyphens or underscores (`-` or `_`). It will be transformed as described above.
