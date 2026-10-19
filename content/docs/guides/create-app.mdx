@@ -29,9 +29,9 @@ You will be presented with a list of supported templates, for example:
 - Expo SDK 55, React Native 0.83 (template v55.83.9)
 - Expo SDK 54, React Native 0.81 (template v54.81.5)
 
-Generally, newer is better, but we offer older templates as well, just in case you hit unexpected difficulties with newer ones, as they may be less mature (i.e. have received less battle-testing by Microsoft).
+Newer templates will of course have more features, but may be less mature, as younger React Native Desktop releases will have received less battle-testing by Microsoft.
 
-You may notice that Expo Desktop template versions lag behind latest Expo / React Native a fair bit (say, by a whole year). This is because we need to align on the lowest common denominator between React Native macOS and React Native Windows, which both lag behind React Native. We are optimistic that the situation will become better in future, though!
+You may notice that Expo Desktop template versions lag behind latest Expo / React Native a fair bit (say, by a whole year). This is because we need to align on the lowest common denominator between React Native macOS and React Native Windows, which both lag behind React Native. We are optimistic that they'll catch up in future, though!
 
 ## Filesafe name (variadic arg)
 
@@ -55,4 +55,4 @@ This is a DNS in reverse. By default, it is `com.example.my-app`, and gets used 
 - the Android **application ID** and **package namespace** (transformed to `com.example.my_app`).
 - the Windows namespaces for WinRT (transformed to `com.example.myapp`) and C++ (transformed to `com::example::myapp`).
 
-You can use alphanumerics, periods (`.`), and hyphens or underscores (`-` or `_`). It will be transformed as described above.
+You can use alphanumerics, periods (`.`), and hyphens or underscores (`-` or `_`). It will be transformed for use as described above.
