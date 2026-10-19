@@ -1,95 +1,62 @@
 ---
-title: Run your apps
-description: Build and launch desktop apps in debug or release mode with Expo's Metro server.
+title: Running your app
 icon: Play
 ---
 
-Run desktop targets with Expo Desktop. Continue using Expo CLI for iOS, Android, web, and ordinary Metro development tasks.
-
-## Debug builds
-
-From your app's root directory, run the command for your host platform:
+To build and run your app for any platform, run any of the following commands:
 
 ```npm
-# On macOS, with Xcode installed
-npx expo-desktop run macos
+# These commands use the Expo CLI:
+node --run ios
+node --run android
+node --run web
+
+# These commands use the Expo Desktop CLI:
+node --run macos
+node --run windows
 ```
 
-```npm
-# On Windows, with Visual Studio and the RNW dependencies installed
-npx expo-desktop run windows
+The Expo Desktop CLI commands are broadly used the same way as the [`expo run:ios` and `expo run:android`](https://docs.expo.dev/more/expo-cli/#building).
+
+## Common arguments
+
+- `--no-build-cache`: Clear the native cache before building. On macOS, this is the **derived data** directory. Cache clearing is useful for profiling your build times.
+- `--no-install`: Skip installing dependencies. On macOS, this will also skip running `npx pod-install` if the `dependencies` field in the project's `package.json` has changed.
+- `--no-bundler`: Skip starting the dev server. Enabled automatically if the dev server is already serving the app from a different process.
+- `-o, --output <path>`: Directory to copy the built app binary to after the build completes. Useful for CI/CD pipelines or when you want the binary in a predictable location.
+- `-p, --port <port>`: Port to start the development server. **Default: 8081**. This is only relevant for development builds. Production builds will [export](#exporting) the project and embed the files in the native binary before installing them on a device.
+- `--binary <path>`: File path to the binary to install on the device. When this is provided, the build process will be skipped and the binary will attempt to be installed directly. If the binary was not built for the correct device, for example, it is built for the simulator or installed on the device, then the command will fail.
+
+## Compiling macOS
+
+A macOS app can have multiple **schemes** for representing different sub-apps like App Clips, watchOS apps, Safari Extensions, and so on. By default, `node --run macos` will automatically choose the scheme for your macOS app. You can pick a custom scheme with the `--scheme <my-scheme>` argument. If you pass in the `--scheme` argument alone, then Expo CLI will prompt you to choose a scheme from the list of available options in your Xcode project.
+
+You can compile a macOS app for production by running:
+
+```sh
+node --run macos -- --configuration Release
 ```
 
-Both commands use the `Debug` configuration by default. They generate the native project with prebuild if its directory is missing, build it, and launch it on the host computer. macOS also installs or synchronizes CocoaPods when needed. Windows autolinks native dependencies before building.
+This build is not automatically code signed for submission to the Apple App Store. `node --run macos` should mostly be used to test bugs that only show up in production builds.
 
-The first native build can take a while; later builds reuse native build outputs by default. JavaScript edits can be served by Metro without rebuilding the native app. Rebuild after changing native dependencies or native code, and [rerun prebuild](/guides/prebuild) after changing app configuration that affects the native project.
+You can debug using `lldb` and all of the native Apple debugging tools by opening the project in Xcode and rebuilding from Xcode:
 
-The commands target your current Mac or Windows computer. There is no desktop simulator or device picker, and the CLI does not cross-compile the macOS app on Windows or the Windows app on macOS.
-
-## One Expo-compatible Metro server
-
-You can start your development server separately:
-
-```npm
-npx expo start
+```sh
+xed macos
 ```
 
-Then run `npx expo-desktop run macos` or `npx expo-desktop run windows` in a second terminal. When the selected port is already serving this same project, the run command reuses that server. Logs remain in the terminal that owns Metro.
+Building from Xcode is useful because you can set native breakpoints and profile any part of the application. Be sure to track changes in source control (git) in case you need to regenerate the native app with `node --run prebuild -- --platform macos --clean`.
 
-If no server is running, a debug run starts Expo's Metro server and developer interface for you. This is fully compatible with Expo's iOS, Android, and web workflows, so you do not need separate mobile and desktop bundlers.
+## Compiling Windows
 
-Keep the template's Metro configuration, which combines Expo's defaults with desktop platform support:
+You can compile a Windows app for production by running:
 
-```js title="metro.config.js"
-const { makeMetroConfig } = require("expo-desktop-metro-config");
-
-module.exports = makeMetroConfig(__dirname);
+```sh
+node --run windows -- --configuration Release
 ```
 
-The default port is `8081`. If you start Expo on a custom port, pass the same port when running the desktop app:
+This build is not automatically code signed for submission to the Windows Store. `node --run windows` should mostly be used to test bugs that only show up in production builds.
 
-```npm
-# First terminal
-npx expo start --port 8082
+You can debug using Visual Studio 2026, by attaching to the process.
 
-# Second terminal, on macOS
-npx expo-desktop run macos --port 8082
-```
-
-On Windows, use `npx expo-desktop run windows --port 8082` in the second terminal instead. Port reuse applies to the same project on the selected port; a different process or another app on that port may cause a prompt to select an available port.
-
-`--no-bundler` requests that the command not start Metro. The current CLI overrides this in Debug builds, including when the configuration is omitted, so it may still start a server. To control your development server, start `npx expo start` first and let the run command reuse it. `--no-bundler` and `--port` cannot be combined.
-
-## Release builds
-
-Use the exact configuration name `Release` to build with a production JavaScript bundle:
-
-```npm
-npx expo-desktop run macos --configuration Release --no-bundler
-```
-
-```npm
-npx expo-desktop run windows --configuration Release
-```
-
-Release builds embed their JavaScript bundle and do not need a running Metro server to use the app. The macOS command uses `--no-bundler` above to avoid leaving a development server running after it builds and launches the app. Windows release runs skip the persistent Metro server automatically.
-
-To copy the outputs somewhere convenient:
-
-```npm
-npx expo-desktop run macos --configuration Release --no-bundler --output ./dist/macos
-```
-
-```npm
-npx expo-desktop run windows --configuration Release --no-launch --output ./dist/windows
-```
-
-macOS copies the built `.app` bundle and launches it. Windows exports its native build artifacts; `--no-launch` skips deployment and launch, making this a build-only command. Exporting Windows artifacts does not by itself create a signed Store submission package.
-
-For another Windows architecture, add `--arch x64` or `--arch arm64` with the required Visual Studio tools installed. Windows supports the `Debug` and `Release` configurations. macOS also accepts other Xcode configuration names, but the CLI's production bundling behavior is selected by the exact name `Release`.
-
-A successful release build is the starting point for distribution. Continue to [sign and distribute your apps](/guides/distribution) to configure store identity, signing, and packaging.
-
-## More run options
-
-The [macOS command reference](/cli/run-macos) covers Xcode schemes, existing `.app` binaries, background launching, and cache controls. The [Windows command reference](/cli/run-windows) covers architectures, existing build artifacts, MSBuild properties, logging, and deployment options.
+Building from Visual Studio is useful because you can set native breakpoints and profile any part of the application. Be sure to track changes in source control (git) in case you need to regenerate the native app with `node --run prebuild -- --platform windows --clean`.
