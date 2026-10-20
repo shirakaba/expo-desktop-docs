@@ -16,47 +16,72 @@ node --run macos
 node --run windows
 ```
 
-The Expo Desktop CLI commands are broadly used the same way as the [`expo run:ios` and `expo run:android`](https://docs.expo.dev/more/expo-cli/#building).
+The Expo Desktop CLI commands are broadly used the same way as the [`expo run:ios`](https://docs.expo.dev/more/expo-cli/#building) and [`expo run:android`](https://docs.expo.dev/more/expo-cli/#building) commands.
 
 ## Common arguments
 
 - `--no-build-cache`: Clear the native cache before building. On macOS, this is the **derived data** directory. Cache clearing is useful for profiling your build times.
 - `--no-install`: Skip installing dependencies. On macOS, this will also skip running `npx pod-install` if the `dependencies` field in the project's `package.json` has changed.
 - `--no-bundler`: Skip starting the dev server. Enabled automatically if the dev server is already serving the app from a different process.
+  <Callout type="warn">
+    This flag is currently ignored on `run macos`. Bug tracked in [Issue
+    #35](https://github.com/shirakaba/expo-desktop/issues/35).
+  </Callout>
 - `-o, --output <path>`: Directory to copy the built app binary to after the build completes. Useful for CI/CD pipelines or when you want the binary in a predictable location.
 - `-p, --port <port>`: Port to start the development server. **Default: 8081**. This is only relevant for development builds. Production builds will [export](#exporting) the project and embed the files in the native binary before installing them on a device.
 - `--binary <path>`: File path to the binary to install on the device. When this is provided, the build process will be skipped and the binary will attempt to be installed directly. If the binary was not built for the correct device, for example, it is built for the simulator or installed on the device, then the command will fail.
 
-## Compiling macOS
+## Running the macOS app
 
-A macOS app can have multiple **schemes** for representing different sub-apps like App Clips, watchOS apps, Safari Extensions, and so on. By default, `node --run macos` will automatically choose the scheme for your macOS app. You can pick a custom scheme with the `--scheme <my-scheme>` argument. If you pass in the `--scheme` argument alone, then Expo CLI will prompt you to choose a scheme from the list of available options in your Xcode project.
+The basic command is:
 
-You can compile a macOS app for production by running:
+```npm
+node --run macos
+# or
+npx expo-desktop run macos
+```
+
+### Setting the project root (variadic arg)
+
+This allows you to run the `run macos` command on a different directory to the current working directory.
+
+```npm
+npx expo-desktop run macos path/to/MyApp
+```
+
+### Setting the build configuration (`--configuration`)
+
+This option specifies whether to do a debug-mode build (the default), or a release-mode build. Technically, you can also adapt your Xcode project to support additional custom build configurations, but it's a bit of an advanced use-case.
 
 ```sh
+node --run macos -- --configuration Debug
 node --run macos -- --configuration Release
 ```
 
-This build is not automatically code signed for submission to the Apple App Store. `node --run macos` should mostly be used to test bugs that only show up in production builds.
+### Launching the app in the background (`--background`)
 
-You can debug using `lldb` and all of the native Apple debugging tools by opening the project in Xcode and rebuilding from Xcode:
-
-```sh
-xed macos
-```
-
-Building from Xcode is useful because you can set native breakpoints and profile any part of the application. Be sure to track changes in source control (git) in case you need to regenerate the native app with `node --run prebuild -- --platform macos --clean`.
-
-## Compiling Windows
-
-You can compile a Windows app for production by running:
+By default, the app launches in the foreground, meaning it will steal focus once launched. If you'd prefer that it launch in the background, you can override this behaviour like so:
 
 ```sh
-node --run windows -- --configuration Release
+node --run macos -- --background
 ```
 
-This build is not automatically code signed for submission to the Windows Store. `node --run windows` should mostly be used to test bugs that only show up in production builds.
+### Launching the app as a new instance (`--no-single-instance`)
 
-You can debug using Visual Studio 2026, by attaching to the process.
+By default, if an existing instance of the app is already open, it will be killed before another launch attempt is made. However, if you'd prefer that a separate instance of the app is launched without killing the existing one, you can override this behaviour like so:
 
-Building from Visual Studio is useful because you can set native breakpoints and profile any part of the application. Be sure to track changes in source control (git) in case you need to regenerate the native app with `node --run prebuild -- --platform windows --clean`.
+```sh
+node --run macos -- --no-single-instance
+```
+
+### Setting the build scheme (`--scheme`)
+
+By default, the Expo Desktop CLI will automatically select the scheme for the Mac app. However, you can specify an explicit scheme to launch if preferred (e.g. if you have an App Extension to launch).
+
+```sh
+node --run macos -- --scheme MyAppExtension
+```
+
+## Running the Windows app
+
+TODO
