@@ -212,18 +212,6 @@ Third-party Mac distribution via the Xcode CLI is not yet documented.
 
 A full introduction to [Fastlane](https://fastlane.tools) is out of scope for this article, but below is a sample `Fastfile` you could use for distributing a Mac app.
 
-You'd run it with:
-
-```sh
-MAC_APPLE_TEAM_ID=ABCDE12345
-MAC_APP_STORE_PROFILE=MyApp Mac App Store
-MAC_APP_SIGNING_IDENTITY=Apple Distribution: Example Company (ABCDE12345)
-MAC_INSTALLER_SIGNING_IDENTITY=Apple Distribution: Example Company (ABCDE12345)
-APP_STORE_CONNECT_API_KEY_PATH=/path/to/AuthKey_KEYID.p8
-
-bundle exec fastlane mac release
-```
-
 ```ruby name="fastlane/Fastfile"
 require "xcodeproj"
 
@@ -312,6 +300,18 @@ platform :mac do
     )
   end
 end
+```
+
+You'd run it with:
+
+```sh
+MAC_APPLE_TEAM_ID=ABCDE12345
+MAC_APP_STORE_PROFILE="MyApp Mac App Store"
+MAC_APP_SIGNING_IDENTITY="Apple Distribution: Example Company (ABCDE12345)"
+MAC_INSTALLER_SIGNING_IDENTITY="Apple Distribution: Example Company (ABCDE12345)"
+APP_STORE_CONNECT_API_KEY_PATH="path/to/AuthKey_KEYID.p8"
+
+bundle exec fastlane mac release
 ```
 
 </EnvironmentContent>
