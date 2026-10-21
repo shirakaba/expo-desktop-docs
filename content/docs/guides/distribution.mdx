@@ -1,16 +1,43 @@
 ---
 title: Distribution
-description: Build, sign, and prepare macOS and Windows apps for their stores.
+description: Build, sign, and distribute macOS and Windows apps.
 icon: Package
 ---
 
-## Distributing your Mac app
+Choose your app's platform and distribution channel.
 
-### To the Mac App Store
+<Environment
+  storageKey="docs-distribution-platform"
+  selectors={[
+    {
+      key: "platform",
+      label: "Platform",
+      options: { macos: "Mac", windows: "Windows" },
+    },
+  ]}
+>
+
+<EnvironmentContent platform="macos">
+
+<Environment
+  storageKey="docs-distribution-channel"
+  selectors={[
+    {
+      key: "distribution",
+      label: "Distribution",
+      options: {
+        store: "Mac App Store",
+        "third-party": "Third-party distribution",
+      },
+    },
+  ]}
+>
+
+<EnvironmentContent distribution="store">
 
 As Expo doesn't officially support Mac apps through EAS, we have to implement our own distribution logic.
 
-#### Via the Xcode GUI
+## Via the Xcode GUI
 
 The easiest way is to:
 
@@ -23,9 +50,23 @@ The easiest way is to:
 5. Set `Signing Certificate` to `Development`.
 6. Run `Product > Archive…`.
 
-#### Via the Xcode CLI
+## Via the Xcode CLI
 
-##### Interactive
+<Environment
+  storageKey="docs-distribution-xcode"
+  selectors={[
+    {
+      key: "interaction",
+      label: "Interaction",
+      options: {
+        interactive: "Interactive",
+        "non-interactive": "Non-interactive",
+      },
+    },
+  ]}
+>
+
+<EnvironmentContent interaction="interactive">
 
 The interactive command is the simplest, but inconvenient for CI and agents, as it will prompt you to sign in.
 
@@ -58,7 +99,9 @@ To use manual codesigning instead of automatic, specify a provisioning profile a
     DEVELOPMENT_TEAM=ABCDE12345
 ```
 
-##### Non-interactive
+</EnvironmentContent>
+
+<EnvironmentContent interaction="non-interactive">
 
 To run the command unattended instead, provide the `-authenticationKey*` flags:
 
@@ -72,7 +115,7 @@ xcodebuild archive \
   -allowProvisioningUpdates \
   -authenticationKeyPath /path/to/AuthKey_KEYID.p8 \
   -authenticationKeyID KEYID \
-  -authenticationKeyIssuerID ISSUER_UUID
+  -authenticationKeyIssuerID ISSUER_UUID \
   CODE_SIGN_STYLE=Automatic \
   DEVELOPMENT_TEAM=ABCDE12345
 ```
@@ -89,7 +132,7 @@ To use manual codesigning instead of automatic, specify a provisioning profile a
     -allowProvisioningUpdates \
     -authenticationKeyPath /path/to/AuthKey_KEYID.p8 \
     -authenticationKeyID KEYID \
-    -authenticationKeyIssuerID ISSUER_UUID
+    -authenticationKeyIssuerID ISSUER_UUID \
 -   CODE_SIGN_STYLE=Automatic \
 +   CODE_SIGN_STYLE=Manual \
 +   CODE_SIGN_IDENTITY="Apple Distribution: Example Company (ABCDE12345)" \
@@ -97,7 +140,11 @@ To use manual codesigning instead of automatic, specify a provisioning profile a
     DEVELOPMENT_TEAM=ABCDE12345
 ```
 
-#### Via Fastlane
+</EnvironmentContent>
+
+</Environment>
+
+## Via Fastlane
 
 A full introduction to [Fastlane](https://fastlane.tools) is out of scope for this article, but below is a sample `Fastfile` you could use for distributing a Mac app.
 
@@ -203,10 +250,48 @@ platform :mac do
 end
 ```
 
-### Via third-party distribution
+</EnvironmentContent>
 
-## Distributing your Windows app
+<EnvironmentContent distribution="third-party">
 
-### To the Windows Store
+Third-party Mac distribution is not yet documented.
 
-### Via third-party distribution
+</EnvironmentContent>
+
+</Environment>
+
+</EnvironmentContent>
+
+<EnvironmentContent platform="windows">
+
+<Environment
+  storageKey="docs-distribution-channel"
+  selectors={[
+    {
+      key: "distribution",
+      label: "Distribution",
+      options: {
+        store: "Windows Store",
+        "third-party": "Third-party distribution",
+      },
+    },
+  ]}
+>
+
+<EnvironmentContent distribution="store">
+
+Windows Store distribution is not yet documented.
+
+</EnvironmentContent>
+
+<EnvironmentContent distribution="third-party">
+
+Third-party Windows distribution is not yet documented.
+
+</EnvironmentContent>
+
+</Environment>
+
+</EnvironmentContent>
+
+</Environment>

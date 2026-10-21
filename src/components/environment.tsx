@@ -17,48 +17,71 @@ const targetOS = {
 };
 type DevelopmentOS = keyof typeof developmentOS;
 type TargetOS = keyof typeof targetOS;
-type Selection = { os: DevelopmentOS; platform: TargetOS };
-const defaults: Selection = { os: "macos", platform: "macos" };
-const storageKey = "docs-environment";
+type SelectorKey = "os" | "platform" | "distribution" | "interaction";
+type Selection = Partial<Record<SelectorKey, string>>;
+type Selector = {
+  key: SelectorKey;
+  label: string;
+  options: Record<string, string>;
+};
+const defaultSelectors: Selector[] = [
+  { key: "os", label: "Development OS", options: developmentOS },
+  { key: "platform", label: "Target OS", options: targetOS },
+];
 const EnvironmentContext = createContext<Selection | null>(null);
 
-function readSelection(): Selection {
-  let saved: Partial<Selection> = {};
+function defaultSelection(selectors: Selector[]): Selection {
+  return Object.fromEntries(
+    selectors.map(({ key, options }) => [key, Object.keys(options)[0]]),
+  );
+}
+
+function readSelection(selectors: Selector[], storageKey: string): Selection {
+  let saved: Selection = {};
   try {
     saved = JSON.parse(localStorage.getItem(storageKey) ?? "{}") ?? {};
   } catch {
     // Storage may be unavailable or contain an outdated preference.
   }
   const query = new URLSearchParams(window.location.search);
-  const os = query.get("os") ?? saved.os;
-  const platform = query.get("platform") ?? saved.platform;
-  return {
-    os:
-      os && Object.hasOwn(developmentOS, os)
-        ? (os as DevelopmentOS)
-        : defaults.os,
-    platform:
-      platform && Object.hasOwn(targetOS, platform)
-        ? (platform as TargetOS)
-        : defaults.platform,
-  };
+  return Object.fromEntries(
+    selectors.map(({ key, options }) => {
+      const value = query.get(key) ?? saved[key];
+      return [
+        key,
+        value && Object.hasOwn(options, value)
+          ? value
+          : Object.keys(options)[0],
+      ];
+    }),
+  );
 }
 
-/** Two independent selectors can filter any number of MDX sections below them. */
-export function Environment({ children }: { children: ReactNode }) {
-  const [selection, setSelection] = useState(defaults);
+/** Selectors filter MDX sections and can be nested for more specific choices. */
+export function Environment({
+  children,
+  selectors = defaultSelectors,
+  storageKey = "docs-environment",
+}: {
+  children: ReactNode;
+  selectors?: Selector[];
+  storageKey?: string;
+}) {
+  const parentSelection = useContext(EnvironmentContext);
+  const [selection, setSelection] = useState(() => defaultSelection(selectors));
   useEffect(() => {
-    const restore = () => setSelection(readSelection());
+    const restore = () => setSelection(readSelection(selectors, storageKey));
     restore();
     window.addEventListener("popstate", restore);
     return () => window.removeEventListener("popstate", restore);
-  }, []);
+  }, [selectors, storageKey]);
 
   function change(next: Selection) {
     setSelection(next);
     const url = new URL(window.location.href);
-    url.searchParams.set("os", next.os);
-    url.searchParams.set("platform", next.platform);
+    for (const [key, value] of Object.entries(next)) {
+      url.searchParams.set(key, value);
+    }
     window.history.pushState(null, "", url);
     try {
       localStorage.setItem(storageKey, JSON.stringify(next));
@@ -68,14 +91,9 @@ export function Environment({ children }: { children: ReactNode }) {
   }
 
   return (
-    <EnvironmentContext.Provider value={selection}>
+    <EnvironmentContext.Provider value={{ ...parentSelection, ...selection }}>
       <div className="not-prose my-6 space-y-3">
-        {(
-          [
-            { key: "os", label: "Development OS", options: developmentOS },
-            { key: "platform", label: "Target OS", options: targetOS },
-          ] as const
-        ).map(({ key, label, options }) => (
+        {selectors.map(({ key, label, options }) => (
           <div
             key={key}
             role="group"
@@ -102,23 +120,36 @@ export function Environment({ children }: { children: ReactNode }) {
   );
 }
 
-/** Omit either dimension to show content shared by several combinations. */
+/** Omit a dimension to show content shared by several combinations. */
 export function EnvironmentContent({
   os,
   platform,
+  distribution,
+  interaction,
   children,
 }: {
   os?: DevelopmentOS | DevelopmentOS[];
   platform?: TargetOS | TargetOS[];
+  distribution?: string | string[];
+  interaction?: "interactive" | "non-interactive";
   children: ReactNode;
 }) {
   const selection = useContext(EnvironmentContext);
   if (!selection)
     throw new Error("EnvironmentContent must be inside Environment");
-  const matches = <T extends string>(filter: T | T[] | undefined, value: T) =>
+  const matches = (
+    filter: string | string[] | undefined,
+    value: string | undefined,
+  ) =>
     filter === undefined ||
-    (Array.isArray(filter) ? filter.includes(value) : filter === value);
-  if (!matches(os, selection.os) || !matches(platform, selection.platform))
+    (value !== undefined &&
+      (Array.isArray(filter) ? filter.includes(value) : filter === value));
+  if (
+    !matches(os, selection.os) ||
+    !matches(platform, selection.platform) ||
+    !matches(distribution, selection.distribution) ||
+    !matches(interaction, selection.interaction)
+  )
     return null;
   return <>{children}</>;
 }
