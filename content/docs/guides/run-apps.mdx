@@ -20,6 +20,8 @@ The Expo Desktop CLI commands are broadly used the same way as the [`expo run:io
 
 ## Common arguments
 
+- `[PROJECT-ROOT]`: This positional arg allows you to run the command in a different directory to the current working directory.
+- `--configuration`: This option specifies whether to do a debug-mode build (`--configuration Debug`), which is the default; or a release-mode build (`--configuration Release`).
 - `--no-build-cache`: Clear the native cache before building. On macOS, this is the **derived data** directory. Cache clearing is useful for profiling your build times.
 - `--no-install`: Skip installing dependencies. On macOS, this will also skip running `npx pod-install` if the `dependencies` field in the project's `package.json` has changed.
 - `--no-bundler`: Skip starting the dev server. Enabled automatically if the dev server is already serving the app from a different process.
@@ -31,7 +33,7 @@ The Expo Desktop CLI commands are broadly used the same way as the [`expo run:io
 - `-p, --port <port>`: Port to start the development server. **Default: 8081**. This is only relevant for development builds. Production builds will [export](#exporting) the project and embed the files in the native binary before installing them on a device.
 - `--binary <path>`: File path to the binary to install on the device. When this is provided, the build process will be skipped and the binary will attempt to be installed directly. If the binary was not built for the correct device, for example, it is built for the simulator or installed on the device, then the command will fail.
 
-## Running the macOS app
+## Running the macOS app (`run macos`)
 
 The basic command is:
 
@@ -39,23 +41,6 @@ The basic command is:
 node --run macos
 # or
 npx expo-desktop run macos
-```
-
-### Setting the project root (variadic arg)
-
-This allows you to run the `run macos` command on a different directory to the current working directory.
-
-```npm
-npx expo-desktop run macos path/to/MyApp
-```
-
-### Setting the build configuration (`--configuration`)
-
-This option specifies whether to do a debug-mode build (the default), or a release-mode build. Technically, you can also adapt your Xcode project to support additional custom build configurations, but it's a bit of an advanced use-case.
-
-```sh
-node --run macos -- --configuration Debug
-node --run macos -- --configuration Release
 ```
 
 ### Launching the app in the background (`--background`)
@@ -74,7 +59,7 @@ By default, if an existing instance of the app is already open, it will be kille
 node --run macos -- --no-single-instance
 ```
 
-### Setting the build scheme (`--scheme`)
+### Setting the build scheme (`--scheme <scheme>`)
 
 By default, the Expo Desktop CLI will automatically select the scheme for the Mac app. However, you can specify an explicit scheme to launch if preferred (e.g. if you have an App Extension to launch).
 
@@ -82,6 +67,96 @@ By default, the Expo Desktop CLI will automatically select the scheme for the Ma
 node --run macos -- --scheme MyAppExtension
 ```
 
-## Running the Windows app
+## Running the Windows app (`run windows`)
 
-TODO
+The basic command is:
+
+```npm
+node --run windows
+# or
+npx expo-desktop run windows
+```
+
+### Setting the target architecture (`--arch <architecture>`)
+
+By default, the app will target its own host architecture. But you can cross-compile by passing an explicit argument. Cross-compiling may require additional build tools (e.g. Microsoft Visual C++ for the target architecture).
+
+```sh
+# 64-bit x86 (the most common type of PC)
+node --run windows -- --arch x64
+
+# 64-bit ARM (native when running an ARM Windows VM on macOS)
+node --run windows -- --arch ARM64
+
+# 32-bit x86 (very old!)
+node --run windows -- --arch x86
+```
+
+### Opting out of multi-processor builds (`--singleproc`)
+
+By default, the app will be built in parallel, using multiple processors. However, this can often cause out-of-memory issues on resource-constrained machines (e.g. CI runners) or on ARM64 architecture (where some build tooling is non-native). If you are facing such issues, it's worth opting out of multi-processor builds like so:
+
+```sh
+node --run windows -- --singleproc
+```
+
+### Increasing log verbosity (`--logging`)
+
+Runs [msbuild.exe](https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-command-line-reference?view=visualstudio) with `-verbosity:normal` instead of the default `-verbosity:minimal`. This flag does not support other verbosity levels.
+
+```sh
+node --run windows -- --logging
+```
+
+### Skip launching the app after building it (`--no-launch`)
+
+To build the app but not launch it, pass this flag:
+
+```sh
+node --run windows -- --no-launch
+```
+
+### Skip autolinking the app before build (`--no-autolink`)
+
+By default, the app is autolinked before each build. To skip autolinking, pass this flag:
+
+```sh
+node --run windows -- --no-autolink
+```
+
+### Specify MSBuild properties (`--msbuildprops <properties>`)
+
+Specify MSBuild properties in the format `prop1=value1,prop2=value2`. These will be passed to MSBuild as `/property:prop1=value1;prop2=value2`.
+
+```sh
+# Pass comma-separated key:value pairs to the Expo Desktop CLI:
+node --run windows -- --msbuildprops "WarningLevel=2,OutDir=bin\Debug"
+
+# They will be changed to semicolon-separated when passed to MSBuild:
+msbuild.exe /property:WarningLevel=2;OutDir=bin\Debug …
+```
+
+### ~~Configure direct debugging (`--direct-debugging <port>`)~~
+
+This flag was added to Expo Desktop because the underlying `@react-native-windows/cli` exposed it, but it turns out that it has no purpose anymore.
+
+```sh
+node --run windows -- --direct-debugging 8082
+```
+
+<Callout type="warn">
+  This flag is ignored and will be removed in future. Tracked in [Issue #36](https://github.com/shirakaba/expo-desktop/issues/36).
+
+- Nowadays, debugging is always "direct" in the first place. On React Native Windows ≤ 0.81, it was possible to reconfigure the app to run its JavaScript code run on Chrome, to make use of the Chrome DevTools; this was called "remote" or "web" debugging, and on older versions was the default. Since 0.82, though, debugging is done only through Hermes ("direct").
+- The port can no longer be configured. It was configurable from React Native Windows 0.62, but since [aligning with upstream in 0.81](https://devblogs.microsoft.com/react-native/🚀react-native-windows-v0-81-is-here/), it just shares the Metro port.
+- Passing the flag does not influence whether the debugger is enabled. By default, it's enabled in Debug builds, and disabled in Release builds (see where `settings.UseDirectDebugger(true)` is called in your app's `MyApp.cpp` file).
+
+</Callout>
+
+### Disable telemetry (`--no-telemetry`)
+
+By default, telemetry is sent when using the underlying `@react-native-windows/cli`. Pass this flag to disable it.
+
+```sh
+node --run windows -- --no-telemetry
+```

@@ -66,7 +66,7 @@ node --run prebuild -- --bun
 
 By default, it chooses the appropriate package manager based on an existing lockfile (e.g. it will choose Bun if it finds a `bun.lock`), though. So this flag is only really relevant in the unusual case that no lockfile is present.
 
-## Specifying a prebuild template (`--template`)
+## Specifying a prebuild template (`--template <template>`)
 
 By default, Expo Desktop prebuilds from [expo-desktop-template-bare-minimum](https://github.com/shirakaba/expo-desktop/tree/main/templates/bare-minimum) (hence why we add it to `devDependencies` in our [blank-typescript](https://github.com/shirakaba/expo-desktop/tree/main/templates/blank-typescript) app template - the Expo Desktop CLI pulls it out of `node_modules`), but you can specify a custom template if preferred.
 
