@@ -48,11 +48,11 @@ Choose your app's platform and distribution channel.
   ]}
 >
 
+<EnvironmentContent method="xcode-gui">
+
 <EnvironmentContent distribution="store">
 
 As Expo doesn't officially support Mac apps through EAS, we have to implement our own distribution logic.
-
-<EnvironmentContent method="xcode-gui">
 
 The easiest way is to:
 
@@ -64,6 +64,14 @@ The easiest way is to:
    If this is not visible, first click `Add account…` if present, and log in to your Apple Developer ID.
 5. Set `Signing Certificate` to `Development`.
 6. Run `Product > Archive…`.
+
+</EnvironmentContent>
+
+<EnvironmentContent distribution="third-party">
+
+Third-party Mac distribution via the Xcode GUI is not yet documented.
+
+</EnvironmentContent>
 
 </EnvironmentContent>
 
@@ -80,12 +88,23 @@ The easiest way is to:
         "non-interactive": "Non-interactive",
       },
     },
+    {
+      key: "signing",
+      label: "Signing",
+      options: { automatic: "Automatic", manual: "Manual" },
+    },
   ]}
 >
+
+<EnvironmentContent distribution="store">
+
+As Expo doesn't officially support Mac apps through EAS, we have to implement our own distribution logic.
 
 <EnvironmentContent interaction="interactive">
 
 The interactive command is the simplest, but inconvenient for CI and agents, as it will prompt you to sign in.
+
+<EnvironmentContent signing="automatic">
 
 ```sh
 xcodebuild archive \
@@ -99,28 +118,35 @@ xcodebuild archive \
   DEVELOPMENT_TEAM=ABCDE12345
 ```
 
-To use manual codesigning instead of automatic, specify a provisioning profile and signing certificate:
+</EnvironmentContent>
 
-```diff
-  xcodebuild archive \
-    -workspace macos/MyApp.xcworkspace \
-    -scheme MyApp-macOS \
-    -configuration Release \
-    -destination 'generic/platform=macOS' \
-    -archivePath "$PWD/dist/MyApp.xcarchive" \
-    -allowProvisioningUpdates \
--   CODE_SIGN_STYLE=Automatic \
-+   CODE_SIGN_STYLE=Manual \
-+   CODE_SIGN_IDENTITY="Apple Distribution: Example Company (ABCDE12345)" \
-+   PROVISIONING_PROFILE_SPECIFIER="MyApp Mac App Store" \
-    DEVELOPMENT_TEAM=ABCDE12345
+<EnvironmentContent signing="manual">
+
+For manual codesigning, specify a provisioning profile and signing certificate:
+
+```sh
+xcodebuild archive \
+  -workspace macos/MyApp.xcworkspace \
+  -scheme MyApp-macOS \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -archivePath "$PWD/dist/MyApp.xcarchive" \
+  -allowProvisioningUpdates \
+  CODE_SIGN_STYLE=Manual \
+  CODE_SIGN_IDENTITY="Apple Distribution: Example Company (ABCDE12345)" \
+  PROVISIONING_PROFILE_SPECIFIER="MyApp Mac App Store" \
+  DEVELOPMENT_TEAM=ABCDE12345
 ```
+
+</EnvironmentContent>
 
 </EnvironmentContent>
 
 <EnvironmentContent interaction="non-interactive">
 
 To run the command unattended instead, provide the `-authenticationKey*` flags:
+
+<EnvironmentContent signing="automatic">
 
 ```sh
 xcodebuild archive \
@@ -137,25 +163,38 @@ xcodebuild archive \
   DEVELOPMENT_TEAM=ABCDE12345
 ```
 
-To use manual codesigning instead of automatic, specify a provisioning profile and signing certificate:
+</EnvironmentContent>
 
-```diff
-  xcodebuild archive \
-    -workspace macos/MyApp.xcworkspace \
-    -scheme MyApp-macOS \
-    -configuration Release \
-    -destination 'generic/platform=macOS' \
-    -archivePath "$PWD/dist/MyApp.xcarchive" \
-    -allowProvisioningUpdates \
-    -authenticationKeyPath /path/to/AuthKey_KEYID.p8 \
-    -authenticationKeyID KEYID \
-    -authenticationKeyIssuerID ISSUER_UUID \
--   CODE_SIGN_STYLE=Automatic \
-+   CODE_SIGN_STYLE=Manual \
-+   CODE_SIGN_IDENTITY="Apple Distribution: Example Company (ABCDE12345)" \
-+   PROVISIONING_PROFILE_SPECIFIER="MyApp Mac App Store" \
-    DEVELOPMENT_TEAM=ABCDE12345
+<EnvironmentContent signing="manual">
+
+For manual codesigning, specify a provisioning profile and signing certificate:
+
+```sh
+xcodebuild archive \
+  -workspace macos/MyApp.xcworkspace \
+  -scheme MyApp-macOS \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -archivePath "$PWD/dist/MyApp.xcarchive" \
+  -allowProvisioningUpdates \
+  -authenticationKeyPath /path/to/AuthKey_KEYID.p8 \
+  -authenticationKeyID KEYID \
+  -authenticationKeyIssuerID ISSUER_UUID \
+  CODE_SIGN_STYLE=Manual \
+  CODE_SIGN_IDENTITY="Apple Distribution: Example Company (ABCDE12345)" \
+  PROVISIONING_PROFILE_SPECIFIER="MyApp Mac App Store" \
+  DEVELOPMENT_TEAM=ABCDE12345
 ```
+
+</EnvironmentContent>
+
+</EnvironmentContent>
+
+</EnvironmentContent>
+
+<EnvironmentContent distribution="third-party">
+
+Third-party Mac distribution via the Xcode CLI is not yet documented.
 
 </EnvironmentContent>
 
@@ -164,6 +203,10 @@ To use manual codesigning instead of automatic, specify a provisioning profile a
 </EnvironmentContent>
 
 <EnvironmentContent method="fastlane">
+
+<EnvironmentContent distribution="store">
+
+As Expo doesn't officially support Mac apps through EAS, we have to implement our own distribution logic.
 
 A full introduction to [Fastlane](https://fastlane.tools) is out of scope for this article, but below is a sample `Fastfile` you could use for distributing a Mac app.
 
@@ -271,23 +314,7 @@ end
 
 </EnvironmentContent>
 
-</EnvironmentContent>
-
 <EnvironmentContent distribution="third-party">
-
-<EnvironmentContent method="xcode-gui">
-
-Third-party Mac distribution via the Xcode GUI is not yet documented.
-
-</EnvironmentContent>
-
-<EnvironmentContent method="xcode-cli">
-
-Third-party Mac distribution via the Xcode CLI is not yet documented.
-
-</EnvironmentContent>
-
-<EnvironmentContent method="fastlane">
 
 Third-party Mac distribution via Fastlane is not yet documented.
 

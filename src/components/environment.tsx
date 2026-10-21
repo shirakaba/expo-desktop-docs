@@ -22,7 +22,8 @@ type SelectorKey =
   | "platform"
   | "distribution"
   | "method"
-  | "interaction";
+  | "interaction"
+  | "signing";
 type Selection = Partial<Record<SelectorKey, string>>;
 type Selector = {
   key: SelectorKey;
@@ -132,6 +133,7 @@ export function EnvironmentContent({
   distribution,
   method,
   interaction,
+  signing,
   children,
 }: {
   os?: DevelopmentOS | DevelopmentOS[];
@@ -139,6 +141,7 @@ export function EnvironmentContent({
   distribution?: string | string[];
   method?: "xcode-gui" | "xcode-cli" | "fastlane";
   interaction?: "interactive" | "non-interactive";
+  signing?: "automatic" | "manual";
   children: ReactNode;
 }) {
   const selection = useContext(EnvironmentContext);
@@ -156,7 +159,8 @@ export function EnvironmentContent({
     !matches(platform, selection.platform) ||
     !matches(distribution, selection.distribution) ||
     !matches(method, selection.method) ||
-    !matches(interaction, selection.interaction)
+    !matches(interaction, selection.interaction) ||
+    !matches(signing, selection.signing)
   )
     return null;
   return <>{children}</>;
