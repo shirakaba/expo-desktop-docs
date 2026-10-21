@@ -33,11 +33,26 @@ Choose your app's platform and distribution channel.
   ]}
 >
 
+<Environment
+  storageKey="docs-distribution-method"
+  selectors={[
+    {
+      key: "method",
+      label: "Method",
+      options: {
+        "xcode-gui": "Via the Xcode GUI",
+        "xcode-cli": "Via the Xcode CLI",
+        fastlane: "Via Fastlane",
+      },
+    },
+  ]}
+>
+
 <EnvironmentContent distribution="store">
 
 As Expo doesn't officially support Mac apps through EAS, we have to implement our own distribution logic.
 
-## Via the Xcode GUI
+<EnvironmentContent method="xcode-gui">
 
 The easiest way is to:
 
@@ -50,7 +65,9 @@ The easiest way is to:
 5. Set `Signing Certificate` to `Development`.
 6. Run `Product > Archive…`.
 
-## Via the Xcode CLI
+</EnvironmentContent>
+
+<EnvironmentContent method="xcode-cli">
 
 <Environment
   storageKey="docs-distribution-xcode"
@@ -144,7 +161,9 @@ To use manual codesigning instead of automatic, specify a provisioning profile a
 
 </Environment>
 
-## Via Fastlane
+</EnvironmentContent>
+
+<EnvironmentContent method="fastlane">
 
 A full introduction to [Fastlane](https://fastlane.tools) is out of scope for this article, but below is a sample `Fastfile` you could use for distributing a Mac app.
 
@@ -252,11 +271,31 @@ end
 
 </EnvironmentContent>
 
+</EnvironmentContent>
+
 <EnvironmentContent distribution="third-party">
 
-Third-party Mac distribution is not yet documented.
+<EnvironmentContent method="xcode-gui">
+
+Third-party Mac distribution via the Xcode GUI is not yet documented.
 
 </EnvironmentContent>
+
+<EnvironmentContent method="xcode-cli">
+
+Third-party Mac distribution via the Xcode CLI is not yet documented.
+
+</EnvironmentContent>
+
+<EnvironmentContent method="fastlane">
+
+Third-party Mac distribution via Fastlane is not yet documented.
+
+</EnvironmentContent>
+
+</EnvironmentContent>
+
+</Environment>
 
 </Environment>
 

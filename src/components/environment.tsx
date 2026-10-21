@@ -17,7 +17,12 @@ const targetOS = {
 };
 type DevelopmentOS = keyof typeof developmentOS;
 type TargetOS = keyof typeof targetOS;
-type SelectorKey = "os" | "platform" | "distribution" | "interaction";
+type SelectorKey =
+  | "os"
+  | "platform"
+  | "distribution"
+  | "method"
+  | "interaction";
 type Selection = Partial<Record<SelectorKey, string>>;
 type Selector = {
   key: SelectorKey;
@@ -125,12 +130,14 @@ export function EnvironmentContent({
   os,
   platform,
   distribution,
+  method,
   interaction,
   children,
 }: {
   os?: DevelopmentOS | DevelopmentOS[];
   platform?: TargetOS | TargetOS[];
   distribution?: string | string[];
+  method?: "xcode-gui" | "xcode-cli" | "fastlane";
   interaction?: "interactive" | "non-interactive";
   children: ReactNode;
 }) {
@@ -148,6 +155,7 @@ export function EnvironmentContent({
     !matches(os, selection.os) ||
     !matches(platform, selection.platform) ||
     !matches(distribution, selection.distribution) ||
+    !matches(method, selection.method) ||
     !matches(interaction, selection.interaction)
   )
     return null;
