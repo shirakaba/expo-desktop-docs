@@ -22,9 +22,24 @@ npx expo-desktop@latest create-app MyApp \
 
 </Callout>
 
-## Template (`--template`)
+## Specify the app template (`--template <template>`)
 
-You will be presented with a list of supported templates, for example:
+By default, Expo Desktop creates apps from [expo-desktop-template-blank-typescript](https://github.com/shirakaba/expo-desktop/tree/main/templates/blank-typescript), but you can specify a custom template if preferred.
+
+```npm
+# Specify a custom template…
+
+# …via URL:
+npx expo-desktop@latest create-app --template https://github.com/shirakaba/expo-desktop/tree/main/templates/blank-typescript
+
+# …via npm:
+npx expo-desktop@latest create-app --template expo-desktop-template-blank-typescript@latest
+
+# …via file system:
+npx expo-desktop@latest create-app --template ./expo-desktop-template-blank-typescript-55.83.1.tgz
+```
+
+If this arg is omitted, you will be presented with a list of supported templates, for example:
 
 - Expo SDK 55, React Native 0.83 (template v55.83.9)
 - Expo SDK 54, React Native 0.81 (template v54.81.5)
@@ -33,13 +48,17 @@ Newer templates will of course have more features, but may be less mature, as yo
 
 You may notice that Expo Desktop template versions lag behind latest Expo / React Native a fair bit (say, by a whole year). This is because we need to align on the lowest common denominator between React Native macOS and React Native Windows, which both lag behind React Native. We are optimistic that they'll catch up in future, though!
 
-## Filesafe name (variadic arg)
+## Specify the filesafe name / project root (variadic arg)
 
-This is the name used for files and folders. By default, it is `MyApp`, and gets used for paths such as `MyApp-macOS/MyApp.entitlements`.
+This is the name used for files and folders. By default, it is `MyApp`, and gets used for paths such as `MyApp-macOS/MyApp.entitlements`. We restrict it to alphanumerics.
 
-We restrict it to alphanumerics.
+Pass it as follows:
 
-## Display name (`--display-name`)
+```npm
+npx expo-desktop@latest create-app MyApp
+```
+
+## Specify the display name (`--display-name <name>`)
 
 This is the name used for user-facing purposes. By default, it is `My App`, and gets used for the app's filename (e.g. `My App.app` and `My App.exe`), and as the name on app stores, etc.
 
@@ -47,7 +66,13 @@ If an explicit window title is not specified in your `app.json`, this value is u
 
 The display name is an unrestricted string; it accepts any characters (e.g. CJK, spaces, and more). It's unknown whether any characters are problematic, so make sure to test.
 
-## Reverse Domain Name Specifier (`--rdns`)
+Pass it as follows:
+
+```npm
+npx expo-desktop@latest create-app --display-name "My App"
+```
+
+## Specify the Reverse Domain Name Specifier (`--rdns <rdns>`)
 
 This is a DNS in reverse. By default, it is `com.example.my-app`, and gets used for:
 
@@ -56,3 +81,49 @@ This is a DNS in reverse. By default, it is `com.example.my-app`, and gets used 
 - the Windows namespaces for WinRT (transformed to `com.example.myapp`) and C++ (transformed to `com::example::myapp`).
 
 You can use alphanumerics, periods (`.`), and hyphens or underscores (`-` or `_`). It will be transformed for use as described above.
+
+Pass it as follows:
+
+```npm
+npx expo-desktop@latest create-app --rdns com.example.my-app-123
+```
+
+## Use the default options (`--yes`)
+
+To skip prompts and just take the default options, pass this argument.
+
+## Skip generating agents files (`--no-agents-md`)
+
+Skip generating the Expo `AGENTS.md`, `CLAUDE.md`, and `.claude/settings.json`. These files are Expo-specific and are not customised in any way for Expo Desktop.
+
+Pass it as follows:
+
+```npm
+npx expo-desktop@latest create-app --no-agents-md
+```
+
+## Skip installation (`--no-install`)
+
+Skip installing npm packages and CocoaPods.
+
+Pass it as follows:
+
+```npm
+npx expo-desktop@latest create-app --no-install
+```
+
+## Specify SDK version (`--version`)
+
+If this arg is omitted, you will be presented with a list of supported `expo-desktop-template-blank-typescript` versions, for example:
+
+- Expo SDK 55, React Native 0.83 (template v55.83.9)
+- Expo SDK 54, React Native 0.81 (template v54.81.5)
+
+By passing it, you can select the `blank-typescript` template up-front by SDK version.
+
+```npm
+# Select expo-desktop-template-blank-typescript@54.31.5
+npx expo-desktop@latest create-app --version 54
+```
+
+See also the more flexible `--template` option.
