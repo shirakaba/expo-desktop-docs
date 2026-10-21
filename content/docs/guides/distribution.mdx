@@ -693,7 +693,33 @@ Distribute the exported `.app.zip` under `dist/`. This ZIP contains the stapled 
 
 <EnvironmentContent distribution="store">
 
-Windows Store distribution is not yet documented.
+<Callout type="warning">
+  This docs section is LLM-generated and so may be of lower quality than the
+  other documented methods.
+</Callout>
+
+Publish the packaged app through [Microsoft Store's MSIX submission workflow](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/create-app-submission). The Store re-signs MSIX/AppX packages before distributing them, so you don't need to buy a code signing certificate or set up Azure Trusted Signing for this channel. See Microsoft's [Store signing requirements](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements#code-signing-for-microsoft-store-submissions).
+
+## Prepare the Store package
+
+Build on Windows with Visual Studio and the [React Native Windows development dependencies](https://microsoft.github.io/react-native-windows/docs/rnw-dependencies) installed. Install your JavaScript dependencies and run `npx expo-desktop prebuild --platform windows` from the app root if the native project is missing, then run `npm run autolink-windows` to update native module references.
+
+1. Create a Microsoft Store developer account and reserve your app's name in Partner Center.
+2. Open `windows/MyApp.sln` in Visual Studio. Right-click the `MyApp.Package` packaging project and select `Publish > Associate App with the Store...`. Sign in with your developer account and select the reserved app.
+3. Check `windows/MyApp.Package/Package.appxmanifest`. Its package name and publisher must match the Store identity; association fills these in. Review the display name, icons, supported Windows versions, and capabilities for your app.
+4. Right-click `MyApp.Package` and select `Publish > Create App Packages...`. Choose the Microsoft Store option for the associated app.
+5. Select `Release` for each architecture you support, such as `x64` and `ARM64`. Enable app bundling when packaging multiple architectures, then create the packages.
+6. Find the generated `.msixupload` or `.appxupload` in the wizard's output directory, normally under `windows/MyApp.Package/AppPackages`. This is the upload file to submit to Partner Center.
+
+These steps use Visual Studio's [packaging wizard](https://learn.microsoft.com/en-us/windows/msix/package/packaging-uwp-apps#generate-an-app-package-upload-file-for-store-submission). The `Release` configuration includes the JavaScript bundle; test that build without Metro running before submitting it.
+
+## Submit to Partner Center
+
+In your app's Partner Center overview, select `Start submission` and upload the package upload file on the `Packages` page. Complete pricing and availability, properties, age ratings, and at least one Store listing with its required descriptions and screenshots. Supply a privacy policy URL when required for your app.
+
+The template declares the restricted `runFullTrust` capability because the app runs as a packaged desktop process. Complete the restricted-capability information requested under submission options and explain how your app uses it. Once all required sections are complete, select `Submit for certification`. See the [submission checklist](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/create-app-submission) for the required fields and certification process.
+
+For an update, keep the Store package identity and increase `Identity Version` in `Package.appxmanifest`, then build and submit a new upload file. Store versions use four components, such as `1.2.3.0`, with the final component reserved as `0`. See the [package version rules](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements#package-version-numbering).
 
 </EnvironmentContent>
 
@@ -739,7 +765,82 @@ From here, the wizard offers to let you select the signing method. Simply select
 
 <EnvironmentContent method="cli">
 
-Certificate signing via CLI is not yet documented.
+<Callout type="warning">
+  This docs section is LLM-generated and so may be of lower quality than the
+  other documented methods.
+</Callout>
+
+Use a code signing certificate whose private key is accessible on the signing machine. Before building, set `Identity Publisher` in `windows/MyApp.Package/Package.appxmanifest` to the certificate's full subject, including any organization and country fields. The values must [match exactly](https://learn.microsoft.com/en-us/windows/msix/package/create-certificate-package-signing#determine-the-subject-of-your-packaged-app).
+
+## Build an unsigned package
+
+Generate a release build:
+
+```sh
+node --run windows \
+  --configuration Release \
+  --arch x64 \
+  --no-launch \
+  --msbuildprops "UapAppxPackageBuildMode=SideloadOnly,AppxBundle=Never,GenerateAppxPackageOnBuild=true,AppxPackageSigningEnabled=false"
+```
+
+The [MSBuild packaging properties](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/ci-for-winui3#step-3-set-up-your-workflow) select a sideload package, disable bundling, and leave signing for the next step. `Release` embeds the JavaScript bundle, and `--no-launch` stops before deployment.
+
+Find the generated `.msix` under `windows/MyApp.Package/AppPackages`, using Powershell:
+
+```powershell
+Get-ChildItem ".\windows\MyApp.Package\AppPackages" -Recurse -Filter *.msix
+```
+
+Use the path from that build in the following Powershell commands:
+
+```powershell
+$package = (Resolve-Path ".\windows\MyApp.Package\AppPackages\MyApp.Package_1.2.3.0_x64_Test\MyApp.Package_1.2.3.0_x64.msix").Path
+$signtool = "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe"
+```
+
+## Sign and verify the package
+
+For a certificate installed in the current user's `Personal` certificate store, list the available code signing certificates and copy the intended certificate's thumbprint, using Powershell:
+
+```powershell
+Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert |
+  Select-Object Subject, Thumbprint, HasPrivateKey
+```
+
+The selected certificate must have an accessible private key. Sign the package and add an RFC 3161 timestamp, using Powershell:
+
+```powershell
+$thumbprint = "YOUR_CERTIFICATE_THUMBPRINT"
+& $signtool sign /v /fd SHA256 /sha1 $thumbprint `
+  /tr http://timestamp.digicert.com /td SHA256 $package
+if ($LASTEXITCODE -ne 0) { throw "Package signing failed." }
+```
+
+`/sha1` selects the certificate by thumbprint; `/fd SHA256` sets the package's signature digest. If the certificate is in the local machine's certificate store, add `/sm`. For a `.pfx` file containing the private key, replace `/sha1 $thumbprint` with `/f "C:\signing\MyApp.pfx" /p $env:WINDOWS_PFX_PASSWORD`, supplying the password through your shell or CI secret environment. Keep the private key and password out of version control. See Microsoft's [package signing examples](https://learn.microsoft.com/en-us/windows/msix/package/sign-app-package-using-signtool#sign-the-app-package).
+
+A [timestamp](https://learn.microsoft.com/en-us/windows/msix/package/signing-package-overview#timestamping) allows Windows to validate the signature at signing time after the signing certificate expires. Verify the resulting signature and check for a timestamp, using Powershell:
+
+```powershell
+& $signtool verify /pa /v /tw $package
+if ($LASTEXITCODE -ne 0) { throw "Package signature verification failed." }
+```
+
+See the [SignTool reference](https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool) for certificate selection and verification options. If you create an `.msixbundle` instead, sign and verify the bundle; its signature covers the packages inside it.
+
+## Test and distribute
+
+The signing certificate must be [trusted on the recipient's device](https://learn.microsoft.com/en-us/windows/msix/package/signing-package-overview). Use a publicly trusted code signing certificate for public distribution. Self-signed certificates are suitable for testing when the test device explicitly trusts them.
+
+Keep the generated `Dependencies` folder and installation scripts alongside the signed package. Test installation with the generated `Add-AppDevPackage.ps1` script, which handles dependency installation. On a machine where the required framework dependencies are already installed, you can also install the signed package directly, using Powershell:
+
+```powershell
+Add-AppxPackage -Path $package
+```
+
+If installing manually on a clean machine, pass the matching-architecture framework packages from `Dependencies` using [`Add-AppxPackage -DependencyPath`](https://learn.microsoft.com/en-us/powershell/module/appx/add-appxpackage), or use the generated installation script. Launch the installed app with Metro stopped to confirm that its release bundle works.
+
+Distribute the signed package with its required dependencies and installation scripts. Users with [App Installer](https://learn.microsoft.com/en-us/windows/msix/app-installer/install-update-app-installer) can also open the `.msix` directly when its dependencies are available. Rebuild and sign again for each release, increasing the manifest's package version while preserving the package name and publisher.
 
 </EnvironmentContent>
 
