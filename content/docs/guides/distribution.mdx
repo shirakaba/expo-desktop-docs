@@ -445,40 +445,6 @@ A full introduction to [Fastlane](https://fastlane.tools) is out of scope for th
 ```ruby name="fastlane/Fastfile"
 require "xcodeproj"
 
-def infer_macos_release_config(app_root: File.expand_path("..", __dir__))
-  macos_root = File.join(app_root, "macos")
-  projects = Dir.glob(File.join(macos_root, "*.xcodeproj"))
-  UI.user_error!("Expected exactly one macos/*.xcodeproj") unless projects.one?
-
-  project_path = projects.first
-  app_name = File.basename(project_path, ".xcodeproj")
-  workspace_path = File.join(macos_root, "#{app_name}.xcworkspace")
-  scheme_name = "#{app_name}-macOS"
-  scheme_path = File.join(project_path, "xcshareddata", "xcschemes", "#{scheme_name}.xcscheme")
-  configuration = Xcodeproj::XCScheme.new(scheme_path).archive_action.build_configuration
-
-  project = Xcodeproj::Project.open(project_path)
-  target = project.targets.find { |item| item.name == scheme_name }
-  UI.user_error!("Missing target #{scheme_name}") unless target
-
-  build_configuration = target.build_configurations.find { |item| item.name == configuration }
-  UI.user_error!("Missing build configuration #{configuration}") unless build_configuration
-  bundle_id = build_configuration.resolve_build_setting("PRODUCT_BUNDLE_IDENTIFIER", target)
-  UI.user_error!("PRODUCT_BUNDLE_IDENTIFIER is missing") if bundle_id.to_s.empty?
-
-  {
-    app_root: app_root,
-    project_path: project_path,
-    workspace_path: workspace_path,
-    scheme_name: scheme_name,
-    target_name: target.name,
-    configuration: configuration,
-    bundle_id: bundle_id,
-    team_id: build_configuration.resolve_build_setting("DEVELOPMENT_TEAM", target),
-    profile_name: build_configuration.resolve_build_setting("PROVISIONING_PROFILE_SPECIFIER", target)
-  }
-end
-
 platform :mac do
   lane :release do
     inferred = infer_macos_release_config
@@ -530,28 +496,6 @@ platform :mac do
     )
   end
 end
-```
-
-You'd run it with:
-
-```sh
-MAC_APPLE_TEAM_ID=ABCDE12345
-MAC_APP_STORE_PROFILE="MyApp Mac App Store"
-MAC_APP_SIGNING_IDENTITY="Apple Distribution: Example Company (ABCDE12345)"
-MAC_INSTALLER_SIGNING_IDENTITY="Apple Distribution: Example Company (ABCDE12345)"
-APP_STORE_CONNECT_API_KEY_PATH="path/to/AuthKey_KEYID.p8"
-
-bundle exec fastlane mac release
-```
-
-</EnvironmentContent>
-
-<EnvironmentContent distribution="third-party">
-
-A full introduction to [Fastlane](https://fastlane.tools) is out of scope for this article, but below is a sample `Fastfile` you could use for distributing a Mac app using Fastlane's [`notarize`](https://docs.fastlane.tools/actions/notarize/) action.
-
-```ruby name="fastlane/Fastfile"
-require "xcodeproj"
 
 def infer_macos_release_config(app_root: File.expand_path("..", __dir__))
   macos_root = File.join(app_root, "macos")
@@ -586,6 +530,28 @@ def infer_macos_release_config(app_root: File.expand_path("..", __dir__))
     profile_name: build_configuration.resolve_build_setting("PROVISIONING_PROFILE_SPECIFIER", target)
   }
 end
+```
+
+You'd run it with:
+
+```sh
+MAC_APPLE_TEAM_ID=ABCDE12345
+MAC_APP_STORE_PROFILE="MyApp Mac App Store"
+MAC_APP_SIGNING_IDENTITY="Apple Distribution: Example Company (ABCDE12345)"
+MAC_INSTALLER_SIGNING_IDENTITY="Apple Distribution: Example Company (ABCDE12345)"
+APP_STORE_CONNECT_API_KEY_PATH="path/to/AuthKey_KEYID.p8"
+
+bundle exec fastlane mac release
+```
+
+</EnvironmentContent>
+
+<EnvironmentContent distribution="third-party">
+
+A full introduction to [Fastlane](https://fastlane.tools) is out of scope for this article, but below is a sample `Fastfile` you could use for distributing a Mac app using Fastlane's [`notarize`](https://docs.fastlane.tools/actions/notarize/) action.
+
+```ruby name="fastlane/Fastfile"
+require "xcodeproj"
 
 platform :mac do
   lane :release do
@@ -646,6 +612,40 @@ platform :mac do
 
     sh("ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", app, "#{app}.zip")
   end
+end
+
+def infer_macos_release_config(app_root: File.expand_path("..", __dir__))
+  macos_root = File.join(app_root, "macos")
+  projects = Dir.glob(File.join(macos_root, "*.xcodeproj"))
+  UI.user_error!("Expected exactly one macos/*.xcodeproj") unless projects.one?
+
+  project_path = projects.first
+  app_name = File.basename(project_path, ".xcodeproj")
+  workspace_path = File.join(macos_root, "#{app_name}.xcworkspace")
+  scheme_name = "#{app_name}-macOS"
+  scheme_path = File.join(project_path, "xcshareddata", "xcschemes", "#{scheme_name}.xcscheme")
+  configuration = Xcodeproj::XCScheme.new(scheme_path).archive_action.build_configuration
+
+  project = Xcodeproj::Project.open(project_path)
+  target = project.targets.find { |item| item.name == scheme_name }
+  UI.user_error!("Missing target #{scheme_name}") unless target
+
+  build_configuration = target.build_configurations.find { |item| item.name == configuration }
+  UI.user_error!("Missing build configuration #{configuration}") unless build_configuration
+  bundle_id = build_configuration.resolve_build_setting("PRODUCT_BUNDLE_IDENTIFIER", target)
+  UI.user_error!("PRODUCT_BUNDLE_IDENTIFIER is missing") if bundle_id.to_s.empty?
+
+  {
+    app_root: app_root,
+    project_path: project_path,
+    workspace_path: workspace_path,
+    scheme_name: scheme_name,
+    target_name: target.name,
+    configuration: configuration,
+    bundle_id: bundle_id,
+    team_id: build_configuration.resolve_build_setting("DEVELOPMENT_TEAM", target),
+    profile_name: build_configuration.resolve_build_setting("PROVISIONING_PROFILE_SPECIFIER", target)
+  }
 end
 ```
 
