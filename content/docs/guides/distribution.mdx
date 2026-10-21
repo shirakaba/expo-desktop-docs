@@ -100,9 +100,19 @@ Third-party Mac distribution via the Xcode GUI is not yet documented.
 
 The interactive command is the simplest, but inconvenient for CI and agents, as it will prompt you to sign in.
 
+</EnvironmentContent>
+
+<EnvironmentContent interaction="non-interactive">
+
+Running the command unattended requires providing the `-authenticationKey*` flags.
+
+</EnvironmentContent>
+
 <EnvironmentContent signing="automatic">
 
 Automatic codesigning is simpler than manual codesigning, but is less flexible when working on a team.
+
+<EnvironmentContent interaction="interactive">
 
 ```sh
 xcodebuild archive \
@@ -118,35 +128,7 @@ xcodebuild archive \
 
 </EnvironmentContent>
 
-<EnvironmentContent signing="manual">
-
-Manual codesigning requires specifying a provisioning profile and signing certificate.
-
-```sh
-xcodebuild archive \
-  -workspace macos/MyApp.xcworkspace \
-  -scheme MyApp-macOS \
-  -configuration Release \
-  -destination 'generic/platform=macOS' \
-  -archivePath "$PWD/dist/MyApp.xcarchive" \
-  -allowProvisioningUpdates \
-  CODE_SIGN_STYLE=Manual \
-  CODE_SIGN_IDENTITY="Apple Distribution: Example Company (ABCDE12345)" \
-  PROVISIONING_PROFILE_SPECIFIER="MyApp Mac App Store" \
-  DEVELOPMENT_TEAM=ABCDE12345
-```
-
-</EnvironmentContent>
-
-</EnvironmentContent>
-
 <EnvironmentContent interaction="non-interactive">
-
-Running the command unattended requires providing the `-authenticationKey*` flags.
-
-<EnvironmentContent signing="automatic">
-
-Automatic codesigning is simpler than manual codesigning, but is less flexible when working on a team.
 
 ```sh
 xcodebuild archive \
@@ -165,9 +147,31 @@ xcodebuild archive \
 
 </EnvironmentContent>
 
+</EnvironmentContent>
+
 <EnvironmentContent signing="manual">
 
 Manual codesigning requires specifying a provisioning profile and signing certificate.
+
+<EnvironmentContent interaction="interactive">
+
+```sh
+xcodebuild archive \
+  -workspace macos/MyApp.xcworkspace \
+  -scheme MyApp-macOS \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -archivePath "$PWD/dist/MyApp.xcarchive" \
+  -allowProvisioningUpdates \
+  CODE_SIGN_STYLE=Manual \
+  CODE_SIGN_IDENTITY="Apple Distribution: Example Company (ABCDE12345)" \
+  PROVISIONING_PROFILE_SPECIFIER="MyApp Mac App Store" \
+  DEVELOPMENT_TEAM=ABCDE12345
+```
+
+</EnvironmentContent>
+
+<EnvironmentContent interaction="non-interactive">
 
 ```sh
 xcodebuild archive \
