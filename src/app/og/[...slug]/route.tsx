@@ -1,5 +1,4 @@
 import { ImageResponse } from "next/og";
-import { type CSSProperties } from "react";
 
 import { DesktopLogo } from "@/components/desktop-logo";
 import { getPageImage, source } from "@/lib/source";
@@ -27,11 +26,13 @@ export async function GET(
     );
   });
 
-  const hierarchyFontSize = Math.min(
-    lines.length === 1 ? 60 : lines.length === 2 ? 50 : 40,
-    // Keep longer titles and their branch indentation in the left half.
-    ...lines.map((text, i) => 520 / (text.length * 0.6 + i * 2)),
-  );
+  const hierarchyFontSize = lines.length === 1 ? 72 : 56;
+  const hierarchyIndent = 56;
+  const hierarchyGap = 16;
+  const hierarchyStalkOffset = 20;
+  const hierarchyStalkGap = 16;
+  const hierarchyBranchGap = 16;
+  const hierarchyLineHeight = hierarchyFontSize * 1.2;
 
   return new ImageResponse(
     <div
@@ -56,7 +57,7 @@ export async function GET(
         style={{
           position: "absolute",
           top: (height - logoSize) / 2,
-          right: (height - logoSize) / 2,
+          right: (height - logoSize) / 4,
           opacity: 1,
         }}
       />
@@ -89,62 +90,46 @@ export async function GET(
               alignItems: "flex-start",
               justifyContent: "flex-start",
               paddingLeft: "4px",
-              rowGap: "12px",
+              rowGap: hierarchyGap,
             }}
           >
             {lines.map((text, i, acc) => {
-              const branchStyle: CSSProperties = {
-                marginRight: "0.33em",
-              };
+              const opacity =
+                minTextOpacity + ((i + 1) / acc.length) * (1 - minTextOpacity);
+              const branchColor = `rgba(237,246,255,${opacity - 0.2})`;
 
               return (
                 <div
                   key={i}
                   style={{
                     display: "flex",
-                    justifyContent: "flex-start",
+                    position: "relative",
                     alignItems: "center",
-                    whiteSpace: "pre",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
+                    paddingLeft: i * hierarchyIndent,
+                    height: hierarchyLineHeight,
                     fontSize: hierarchyFontSize,
-                    // @vercel/og only bundles Noto Sans 400, so this has no effect
-                    fontWeight: i === acc.length - 1 ? 500 : 300,
-
-                    color: `rgba(237,246,255,${minTextOpacity + ((i + 1) / acc.length) * (1 - minTextOpacity)})`,
+                    lineHeight: 1.2,
+                    whiteSpace: "pre",
+                    color: `rgba(237,246,255,${opacity})`,
                   }}
                 >
-                  {/* These are purely spacers */}
-                  {lines.slice(0, i).map((line, j) => {
-                    return (
-                      <div
-                        key={j}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          opacity: 0,
-                        }}
-                      >
-                        {j > 0 && (
-                          <Branch
-                            style={{
-                              ...branchStyle,
-                              color: `rgba(237,246,255,${minTextOpacity + ((j + 1) / acc.length) * (1 - minTextOpacity) - 0.2})`,
-                            }}
-                          />
-                        )}
-                        <div
-                          style={{ fontSize: 16 }}
-                        >{`${line.slice(0, 1)}`}</div>
-                      </div>
-                    );
-                  })}
-
                   {i > 0 && (
-                    <Branch
+                    <div
                       style={{
-                        ...branchStyle,
-                        color: `rgba(237,246,255,${minTextOpacity + ((i + 1) / acc.length) * (1 - minTextOpacity) - 0.2})`,
+                        position: "absolute",
+                        left: (i - 1) * hierarchyIndent + hierarchyStalkOffset,
+                        // Leave clearance below the preceding text row.
+                        top: hierarchyStalkGap - hierarchyGap,
+                        width:
+                          hierarchyIndent -
+                          hierarchyStalkOffset -
+                          hierarchyBranchGap,
+                        height:
+                          hierarchyGap +
+                          hierarchyLineHeight / 2 -
+                          hierarchyStalkGap,
+                        borderLeft: `2px solid ${branchColor}`,
+                        borderBottom: `2px solid ${branchColor}`,
                       }}
                     />
                   )}
@@ -154,7 +139,7 @@ export async function GET(
             })}
           </div>
         ) : (
-          <div style={{ paddingLeft: "4px", fontSize: 52, color: "#EDF6FF" }}>
+          <div style={{ paddingLeft: "4px", fontSize: 84, color: "#EDF6FF" }}>
             {page.data.title}
           </div>
         )}
@@ -164,27 +149,6 @@ export async function GET(
       width: 1200,
       height,
     },
-  );
-}
-
-function Branch({ style = {} }: { style?: CSSProperties }) {
-  const { height = "2em", color = "#EDF6FF" } = style;
-
-  return (
-    <div
-      style={{
-        borderWidth: "1px",
-        borderStyle: "solid",
-        borderBottomColor: color,
-        borderLeftColor: color,
-        borderTopColor: "transparent",
-        borderRightColor: "transparent",
-        width: "1.5em",
-        height,
-        marginTop: `-${height}`,
-        ...style,
-      }}
-    ></div>
   );
 }
 
