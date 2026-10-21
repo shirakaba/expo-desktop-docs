@@ -67,7 +67,23 @@ The easiest way is to:
 
 <EnvironmentContent distribution="third-party">
 
-Third-party Mac distribution via the Xcode GUI is not yet documented.
+Use [Developer ID distribution](https://developer.apple.com/documentation/xcode/creating-distribution-signed-code-for-the-mac) to export a notarized app for direct download.
+
+1. Open `macos/MyApp.xcworkspace` and select the `MyApp-macOS` scheme.
+2. Set the app target's `Team` to your Development Team ID and enable `Hardened Runtime` for the Release configuration.
+3. Run `Product > Archive…`, then choose `Distribute App > Direct Distribution` in the Organizer. For custom signing, use `Custom > Developer ID` and select automatic or manual signing. Manual signing takes a `Developer ID Application` identity and, if your entitlements require one, a Developer ID provisioning profile.
+4. Once notarization finishes, export the app to `dist/export/MyApp.app`.
+
+Validate the stapled ticket and package the exported app:
+
+```sh
+xcrun stapler validate "$PWD/dist/export/MyApp.app"
+ditto -c -k --sequesterRsrc --keepParent \
+  "$PWD/dist/export/MyApp.app" \
+  "$PWD/dist/MyApp.zip"
+```
+
+Distribute `dist/MyApp.zip`. The signing identity's private key must be available in your keychain.
 
 </EnvironmentContent>
 
@@ -94,23 +110,33 @@ Third-party Mac distribution via the Xcode GUI is not yet documented.
   ]}
 >
 
-<EnvironmentContent distribution="store">
-
 <EnvironmentContent interaction="interactive">
 
-The interactive command is the simplest, but inconvenient for CI and agents, as it will prompt you to sign in.
+The interactive workflow uses the developer account configured in Xcode and allows credential prompts.
 
 </EnvironmentContent>
 
 <EnvironmentContent interaction="non-interactive">
 
-Running the command unattended requires providing the `-authenticationKey*` flags.
+Running the command unattended requires the `-authenticationKey*` flags: a team API key's `.p8` path, key ID, and issuer UUID.
 
 </EnvironmentContent>
 
 <EnvironmentContent signing="automatic">
 
 Automatic codesigning is simpler than manual codesigning, but is less flexible when working on a team.
+
+</EnvironmentContent>
+
+<EnvironmentContent signing="manual">
+
+Manual codesigning requires a signing certificate and an entitlements file.
+
+</EnvironmentContent>
+
+<EnvironmentContent distribution="store">
+
+<EnvironmentContent signing="automatic">
 
 <EnvironmentContent interaction="interactive">
 
@@ -150,8 +176,6 @@ xcodebuild archive \
 </EnvironmentContent>
 
 <EnvironmentContent signing="manual">
-
-Manual codesigning requires specifying a provisioning profile and signing certificate.
 
 <EnvironmentContent interaction="interactive">
 
@@ -198,7 +222,213 @@ xcodebuild archive \
 
 <EnvironmentContent distribution="third-party">
 
-Third-party Mac distribution via the Xcode CLI is not yet documented.
+<EnvironmentContent signing="automatic">
+
+<EnvironmentContent interaction="interactive">
+
+```sh
+xcodebuild archive \
+  -workspace macos/MyApp.xcworkspace \
+  -scheme MyApp-macOS \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -archivePath "$PWD/dist/MyApp.xcarchive" \
+  -allowProvisioningUpdates \
+  ENABLE_HARDENED_RUNTIME=YES \
+  CODE_SIGN_STYLE=Automatic \
+  DEVELOPMENT_TEAM=ABCDE12345
+```
+
+</EnvironmentContent>
+
+<EnvironmentContent interaction="non-interactive">
+
+```sh
+xcodebuild archive \
+  -workspace macos/MyApp.xcworkspace \
+  -scheme MyApp-macOS \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -archivePath "$PWD/dist/MyApp.xcarchive" \
+  -allowProvisioningUpdates \
+  -authenticationKeyPath /path/to/AuthKey_KEYID.p8 \
+  -authenticationKeyID KEYID \
+  -authenticationKeyIssuerID ISSUER_UUID \
+  ENABLE_HARDENED_RUNTIME=YES \
+  CODE_SIGN_STYLE=Automatic \
+  DEVELOPMENT_TEAM=ABCDE12345
+```
+
+</EnvironmentContent>
+
+</EnvironmentContent>
+
+<EnvironmentContent signing="manual">
+
+<EnvironmentContent interaction="interactive">
+
+```sh
+xcodebuild archive \
+  -workspace macos/MyApp.xcworkspace \
+  -scheme MyApp-macOS \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -archivePath "$PWD/dist/MyApp.xcarchive" \
+  -allowProvisioningUpdates \
+  ENABLE_HARDENED_RUNTIME=YES \
+  CODE_SIGN_STYLE=Manual \
+  CODE_SIGN_IDENTITY="Developer ID Application: Example Company (ABCDE12345)" \
+  PROVISIONING_PROFILE_SPECIFIER="" \
+  DEVELOPMENT_TEAM=ABCDE12345
+```
+
+</EnvironmentContent>
+
+<EnvironmentContent interaction="non-interactive">
+
+```sh
+xcodebuild archive \
+  -workspace macos/MyApp.xcworkspace \
+  -scheme MyApp-macOS \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -archivePath "$PWD/dist/MyApp.xcarchive" \
+  -allowProvisioningUpdates \
+  -authenticationKeyPath /path/to/AuthKey_KEYID.p8 \
+  -authenticationKeyID KEYID \
+  -authenticationKeyIssuerID ISSUER_UUID \
+  ENABLE_HARDENED_RUNTIME=YES \
+  CODE_SIGN_STYLE=Manual \
+  CODE_SIGN_IDENTITY="Developer ID Application: Example Company (ABCDE12345)" \
+  PROVISIONING_PROFILE_SPECIFIER="" \
+  DEVELOPMENT_TEAM=ABCDE12345
+```
+
+</EnvironmentContent>
+
+</EnvironmentContent>
+
+Save the export settings as `dist/ExportOptions.plist`:
+
+<EnvironmentContent signing="automatic">
+
+```xml name="dist/ExportOptions.plist"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>method</key>
+  <string>developer-id</string>
+  <key>destination</key>
+  <string>export</string>
+  <key>teamID</key>
+  <string>ABCDE12345</string>
+  <key>signingStyle</key>
+  <string>automatic</string>
+</dict>
+</plist>
+```
+
+</EnvironmentContent>
+
+<EnvironmentContent signing="manual">
+
+```xml name="dist/ExportOptions.plist"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>method</key>
+  <string>developer-id</string>
+  <key>destination</key>
+  <string>export</string>
+  <key>teamID</key>
+  <string>ABCDE12345</string>
+  <key>signingStyle</key>
+  <string>manual</string>
+  <key>signingCertificate</key>
+  <string>Developer ID Application: Example Company (ABCDE12345)</string>
+</dict>
+</plist>
+```
+
+</EnvironmentContent>
+
+Export the signed app from the archive:
+
+<EnvironmentContent interaction="interactive">
+
+```sh
+xcodebuild -exportArchive \
+  -archivePath "$PWD/dist/MyApp.xcarchive" \
+  -exportPath "$PWD/dist/export" \
+  -exportOptionsPlist "$PWD/dist/ExportOptions.plist" \
+  -allowProvisioningUpdates
+```
+
+</EnvironmentContent>
+
+<EnvironmentContent interaction="non-interactive">
+
+```sh
+xcodebuild -exportArchive \
+  -archivePath "$PWD/dist/MyApp.xcarchive" \
+  -exportPath "$PWD/dist/export" \
+  -exportOptionsPlist "$PWD/dist/ExportOptions.plist" \
+  -allowProvisioningUpdates \
+  -authenticationKeyPath /path/to/AuthKey_KEYID.p8 \
+  -authenticationKeyID KEYID \
+  -authenticationKeyIssuerID ISSUER_UUID
+```
+
+</EnvironmentContent>
+
+Create the ZIP to submit for [notarization](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow):
+
+```sh
+ditto -c -k --sequesterRsrc --keepParent \
+  "$PWD/dist/export/MyApp.app" \
+  "$PWD/dist/MyApp-notarization.zip"
+```
+
+<EnvironmentContent interaction="interactive">
+
+Pass your Apple ID and team ID. `notarytool` prompts for the Apple ID's app-specific password:
+
+```sh
+xcrun notarytool submit "$PWD/dist/MyApp-notarization.zip" \
+  --apple-id APPLE_ID \
+  --team-id ABCDE12345 \
+  --wait
+```
+
+</EnvironmentContent>
+
+<EnvironmentContent interaction="non-interactive">
+
+Pass the same team API key used for the build:
+
+```sh
+xcrun notarytool submit "$PWD/dist/MyApp-notarization.zip" \
+  --key /path/to/AuthKey_KEYID.p8 \
+  --key-id KEYID \
+  --issuer ISSUER_UUID \
+  --wait
+```
+
+</EnvironmentContent>
+
+After the submission reports `Accepted`, staple the ticket to the app and create the final download ZIP. ZIP files cannot be stapled directly.
+
+```sh
+xcrun stapler staple "$PWD/dist/export/MyApp.app"
+xcrun stapler validate "$PWD/dist/export/MyApp.app"
+ditto -c -k --sequesterRsrc --keepParent \
+  "$PWD/dist/export/MyApp.app" \
+  "$PWD/dist/MyApp.zip"
+```
+
+Distribute `dist/MyApp.zip`.
 
 </EnvironmentContent>
 
@@ -208,9 +438,7 @@ Third-party Mac distribution via the Xcode CLI is not yet documented.
 
 <EnvironmentContent method="fastlane">
 
-<EnvironmentContent distribution="store">
-
-A full introduction to [Fastlane](https://fastlane.tools) is out of scope for this article, but below is a sample `Fastfile` you could use for distributing a Mac app.
+Add this shared project lookup to `fastlane/Fastfile`, followed by the selected release lane.
 
 ```ruby name="fastlane/Fastfile"
 require "xcodeproj"
@@ -248,7 +476,13 @@ def infer_macos_release_config(app_root: File.expand_path("..", __dir__))
     profile_name: build_configuration.resolve_build_setting("PROVISIONING_PROFILE_SPECIFIER", target)
   }
 end
+```
 
+<EnvironmentContent distribution="store">
+
+A full introduction to [Fastlane](https://fastlane.tools) is out of scope for this article, but below is a sample `Fastfile` you could use for distributing a Mac app.
+
+```ruby name="fastlane/Fastfile"
 platform :mac do
   lane :release do
     inferred = infer_macos_release_config
@@ -318,7 +552,86 @@ bundle exec fastlane mac release
 
 <EnvironmentContent distribution="third-party">
 
-Third-party Mac distribution via Fastlane is not yet documented.
+This lane exports a Developer ID-signed app, then uses Fastlane's [`notarize`](https://docs.fastlane.tools/actions/notarize/) action to submit it, wait for acceptance, and staple the ticket before creating the download ZIP.
+
+```ruby name="fastlane/Fastfile"
+platform :mac do
+  lane :release do
+    inferred = infer_macos_release_config
+
+    team_id = ENV["MAC_APPLE_TEAM_ID"] || inferred[:team_id]
+    UI.user_error!("Configure macos.appleTeamId and prebuild, or set MAC_APPLE_TEAM_ID") if team_id.to_s.empty?
+
+    app_identity = ENV.fetch("MAC_APP_SIGNING_IDENTITY")
+    profile_name = ENV.fetch("MAC_DEVELOPER_ID_PROFILE", "")
+    key_path = File.expand_path(
+      ENV.fetch("APP_STORE_CONNECT_API_KEY_PATH"),
+      inferred[:app_root]
+    )
+
+    update_code_signing_settings(
+      path: inferred[:project_path],
+      targets: [inferred[:target_name]],
+      build_configurations: [inferred[:configuration]],
+      use_automatic_signing: false,
+      team_id: team_id,
+      code_sign_identity: app_identity,
+      profile_name: profile_name
+    )
+
+    export_options = {
+      signingStyle: "manual",
+      signingCertificate: app_identity
+    }
+    unless profile_name.empty?
+      export_options[:provisioningProfiles] = {
+        inferred[:bundle_id] => profile_name
+      }
+    end
+
+    app = build_app(
+      workspace: inferred[:workspace_path],
+      scheme: inferred[:scheme_name],
+      configuration: inferred[:configuration],
+      destination: "generic/platform=macOS",
+      output_directory: File.join(inferred[:app_root], "dist"),
+      export_method: "developer-id",
+      export_team_id: team_id,
+      skip_profile_detection: true,
+      export_options: export_options,
+      xcargs: "ENABLE_HARDENED_RUNTIME=YES"
+    )
+
+    notarize(
+      package: app,
+      api_key: {
+        key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ID"),
+        issuer_id: ENV.fetch("APP_STORE_CONNECT_API_ISSUER_ID"),
+        key: File.read(key_path)
+      },
+      print_log: true
+    )
+
+    sh("ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", app, "#{app}.zip")
+  end
+end
+```
+
+Inputs are the team ID, the full name of an installed `Developer ID Application` identity with its private key, and a team API key's `.p8` path, key ID, and issuer UUID:
+
+```sh
+export MAC_APPLE_TEAM_ID=ABCDE12345
+export MAC_APP_SIGNING_IDENTITY="Developer ID Application: Example Company (ABCDE12345)"
+export APP_STORE_CONNECT_API_KEY_PATH="/path/to/AuthKey_KEYID.p8"
+export APP_STORE_CONNECT_API_KEY_ID=KEYID
+export APP_STORE_CONNECT_API_ISSUER_ID=ISSUER_UUID
+
+bundle exec fastlane mac release
+```
+
+If your entitlements require an installed Developer ID provisioning profile, pass its name with `export MAC_DEVELOPER_ID_PROFILE="MyApp Developer ID"`. Otherwise, leave it unset. The profile and signing identity must match the app's bundle ID and team.
+
+Distribute the exported `.app.zip` under `dist/`. This ZIP contains the stapled app; no installer signing identity is needed.
 
 </EnvironmentContent>
 
