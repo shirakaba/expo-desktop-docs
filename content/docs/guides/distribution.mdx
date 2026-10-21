@@ -4,84 +4,209 @@ description: Build, sign, and prepare macOS and Windows apps for their stores.
 icon: Package
 ---
 
-Expo Desktop builds native apps that you can distribute through the Mac App Store and Microsoft Store. The CLI helps you test a release build locally; complete signing, packaging, and submission with the platform's native tools.
+## Distributing your Mac app
 
-EAS Build and EAS Submit do not currently support Expo Desktop's macOS and Windows targets. Expo Desktop has no store submission command, and a successful `run` command does not publish your app.
+### To the Mac App Store
 
-## Test a release build
+As Expo doesn't officially support Mac apps through EAS, we have to implement our own distribution logic.
 
-Run these commands from your app's root directory, on the corresponding operating system:
+#### Via the Xcode GUI
 
-```npm title="macOS"
-npx expo-desktop run macos --configuration Release --no-bundler --output ./dist/macos
+The easiest way is to:
+
+1. Open `macos/MyApp.xcworkspace`.
+2. Select the `MyApp-macOS` target.
+3. Enable `Automatically manage signing` if not yet enabled.
+   Or, if you'd prefer to use manual signing, you'll need to specify a `Provisioning Profile` and `Signing Certificate`.
+4. Select your `Team` (the Development Team ID).
+   If this is not visible, first click `Add account…` if present, and log in to your Apple Developer ID.
+5. Set `Signing Certificate` to `Development`.
+6. Run `Product > Archive…`.
+
+#### Via the Xcode CLI
+
+##### Interactive
+
+The interactive command is the simplest, but inconvenient for CI and agents, as it will prompt you to sign in.
+
+```sh
+xcodebuild archive \
+  -workspace macos/MyApp.xcworkspace \
+  -scheme MyApp-macOS \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -archivePath "$PWD/dist/MyApp.xcarchive" \
+  -allowProvisioningUpdates \
+  CODE_SIGN_STYLE=Automatic \
+  DEVELOPMENT_TEAM=ABCDE12345
 ```
 
-```npm title="Windows"
-npx expo-desktop run windows --configuration Release --arch x64
+To use manual codesigning instead of automatic, specify a provisioning profile and signing certificate:
+
+```diff
+  xcodebuild archive \
+    -workspace macos/MyApp.xcworkspace \
+    -scheme MyApp-macOS \
+    -configuration Release \
+    -destination 'generic/platform=macOS' \
+    -archivePath "$PWD/dist/MyApp.xcarchive" \
+    -allowProvisioningUpdates \
+-   CODE_SIGN_STYLE=Automatic \
++   CODE_SIGN_STYLE=Manual \
++   CODE_SIGN_IDENTITY="Apple Distribution: Example Company (ABCDE12345)" \
++   PROVISIONING_PROFILE_SPECIFIER="MyApp Mac App Store" \
+    DEVELOPMENT_TEAM=ABCDE12345
 ```
 
-Use `--arch arm64` for a Windows ARM64 build. Both release configurations embed the JavaScript bundle and disable development features. Quit Metro and reopen the app to check that the shipped app starts without a development server. Test the app's assets, native modules, permissions, and any production-only configuration too.
+##### Non-interactive
 
-The macOS command builds and launches an `.app`; `--output` copies it to the given directory. It does **not** create an Xcode archive or export a distribution-signed installer. On Windows, `--no-launch` builds without deploying or launching the app. `--output` copies Windows build artifacts for later reuse; it does **not** replace the Store packaging workflow or produce a Store submission automatically.
+To run the command unattended instead, provide the `-authenticationKey*` flags:
 
-See [Run your app](/guides/run-apps), [`run macos`](/cli/run-macos), and [`run windows`](/cli/run-windows) for more options.
-
-## Mac App Store
-
-### Configure the macOS target
-
-You need an [Apple Developer Program](https://developer.apple.com/programs/) membership and access to your team's App Store Connect account.
-
-1. Generate the native project with `npx expo-desktop prebuild --platform macos`, then open the `.xcworkspace` inside `macos/` in Xcode. Use the workspace created by CocoaPods rather than opening only the `.xcodeproj`.
-2. Select your macOS application target. In **Signing & Capabilities**, select your developer team and enable automatic signing, or configure the distribution certificates and profiles yourself. Ensure the bundle identifier matches the app you register with Apple. Mac App Store distribution uses an **Apple Distribution** signing identity. Xcode's distribution workflow can manage the signing assets for you. See [Apple's distribution signing guide](https://developer.apple.com/documentation/xcode/creating-distribution-signed-code-for-the-mac/).
-3. Confirm the app's version, build number, icons, copyright, and required permissions. Keep **App Sandbox** enabled and add the entitlements your app needs. The Expo Desktop template already enables sandboxing; test your app with its final entitlements. Apple's [preparation guide](https://developer.apple.com/documentation/xcode/preparing-your-app-for-distribution) explains the macOS requirements.
-4. Create a macOS app record in App Store Connect with the same bundle identifier. Apple uses the bundle identifier, version, and build number to associate an uploaded build with the correct record. See [Upload builds](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/).
-
-Keep supported settings such as `macos.bundleIdentifier`, `macos.appleTeamId`, and `macos.entitlements` in app configuration so prebuild can reproduce them. For additional native changes, preserve them in a config plugin or maintain the native project yourself. A clean prebuild recreates the native directory; see [Prebuild](/guides/prebuild).
-
-### Archive, validate, and upload
-
-1. In Xcode, select your macOS app scheme and a Mac build destination. Check **Edit Scheme → Archive** uses the **Release** configuration, then choose **Product → Archive**. This creates a new archive with the app and debugging information.
-2. In **Window → Organizer → Archives**, select the archive and choose **Validate App**. Review the distribution signing information and entitlements, then fix any validation errors. Validation checks the archive without publishing it. See [Validate an archive](https://help.apple.com/xcode/mac/current/en.lproj/dev37441e273.html).
-3. Choose **Distribute App** and the App Store Connect distribution method. In current Xcode versions, the preset is **TestFlight & App Store**; the custom workflow also offers **App Store Connect**. Follow the signing and upload steps. Xcode packages the archive and signs it for distribution. Apple's [release guide](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases) covers the available options.
-4. Wait for the build to finish processing in App Store Connect. Select it for your app version, complete the listing and required app information, and submit it for review. Uploading a build and releasing it on the store are separate steps; follow Apple's [publishing workflow](https://developer.apple.com/help/app-store-connect/get-started/app-store-connect-workflow).
-
-Test the final archived build, including on every Mac architecture you intend to support. The local CLI build is useful for testing, but it is not proof that your archive passes App Store validation or review.
-
-### Distribution outside the Mac App Store
-
-For direct downloads, use **Developer ID Application** signing, enable **Hardened Runtime**, and notarize the app. Xcode's **Direct Distribution** workflow can handle signing and notarization; export the result with its notarization ticket attached. This is a different distribution channel from the Mac App Store. See [Notarizing macOS software](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution) and [Packaging Mac software](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution).
-
-## Microsoft Store
-
-### Associate the packaging project
-
-You need a Microsoft Store developer account in [Partner Center](https://partner.microsoft.com/dashboard) and a reserved app name.
-
-1. Generate the native project with `npx expo-desktop prebuild --platform windows`, then open the solution (`.sln`) inside `windows/` in Visual Studio.
-2. Find the Windows Application Packaging Project, named something like **MyApp.Package** and backed by a `.wapproj` file. This is the project to package, rather than the C++ application project. Expo Desktop's template includes it already. See Microsoft's [desktop packaging guide](https://learn.microsoft.com/en-us/windows/msix/desktop/desktop-to-uwp-packaging-dot-net).
-3. On that packaging project, use **Publish → Associate App with the Store** and select your reserved app. You can also associate it during **Publish → Create App Packages**. Check the resulting package identity against Partner Center. Store association updates manifest identity fields; the generated development identity is not your Store identity. See [Packaging MSIX apps](https://learn.microsoft.com/en-us/windows/msix/package/packaging-uwp-apps).
-4. Review `Package.appxmanifest`, including its name, publisher, display name, icons, capabilities, supported Windows versions, and package version. Use a higher version for an update; for Store submissions, the fourth component of the version must be `0`, for example `1.2.3.0`. See [App package requirements](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/app-package-requirements?pivots=store-installer-msix).
-
-The current prebuild workflow does not expose Store identity, publisher, or package version as ordinary `app.json` Windows settings. Rerunning Windows prebuild resets these manifest fields, even without `--clean`. Reapply Store association and package version afterward, or restore them with a config plugin. See [Prebuild](/guides/prebuild).
-
-### Package, sign, and submit
-
-1. On the packaging project, choose **Publish → Create App Packages** and select the **Microsoft Store** option for your associated app.
-2. Choose **Release** for each architecture you intend to ship, and generate the package upload file. Visual Studio can produce an `.msixupload` or `.appxupload`, containing a package or bundle and optional debugging symbols. Check that the packaged app includes its JavaScript bundle and assets. See the [packaging wizard guide](https://learn.microsoft.com/en-us/windows/msix/package/packaging-uwp-apps#generate-an-app-package-upload-file-for-store-submission).
-3. Test a locally installable signed package before submission. For Store delivery, **Microsoft signs the MSIX/AppX package for you**; you do not need to buy a code signing certificate for that route. A local test or sideloaded package still needs a signature trusted by the test device. See [Microsoft's signing guidance](https://learn.microsoft.com/en-us/windows/msix/package/sign-msix-package-guide).
-4. In your Partner Center submission, upload the generated upload file on the **Packages** page and resolve any validation errors. Microsoft recommends `.msixupload` or `.appxupload` for submissions. See [Upload MSIX app packages](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/upload-app-packages).
-5. Complete the Store listing, availability, age ratings, properties, and other required submission fields, then submit for certification. Follow the [MSIX submission checklist](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/create-app-submission?pivots=store-installer-msix).
-
-### Signing a package for sideloading
-
-If you distribute an MSIX outside the Store, select a signing certificate in Visual Studio's packaging wizard or sign the completed package with the Windows SDK's SignTool. The certificate's subject must match the manifest's `Publisher`. A self-signed certificate works for testing only when the target device trusts it; use a trusted production signing service or certificate for public distribution. See [Create a certificate for package signing](https://learn.microsoft.com/en-us/windows/msix/package/create-certificate-package-signing) and [Sign an app package using SignTool](https://learn.microsoft.com/en-us/windows/msix/package/sign-app-package-using-signtool).
-
-For example, with a suitable certificate already installed in your certificate store:
-
-```powershell
-signtool sign /fd SHA256 /sha1 YOUR_CERTIFICATE_THUMBPRINT /tr http://timestamp.digicert.com /td SHA256 .\MyApp.msix
-signtool verify /pa /v .\MyApp.msix
+```sh
+xcodebuild archive \
+  -workspace macos/MyApp.xcworkspace \
+  -scheme MyApp-macOS \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -archivePath "$PWD/dist/MyApp.xcarchive" \
+  -allowProvisioningUpdates \
+  -authenticationKeyPath /path/to/AuthKey_KEYID.p8 \
+  -authenticationKeyID KEYID \
+  -authenticationKeyIssuerID ISSUER_UUID
+  CODE_SIGN_STYLE=Automatic \
+  DEVELOPMENT_TEAM=ABCDE12345
 ```
 
-Replace the thumbprint and package path with your own values. Sign the finished package after packaging, and keep the signing private key out of your repository and distributed files.
+To use manual codesigning instead of automatic, specify a provisioning profile and signing certificate:
+
+```diff
+  xcodebuild archive \
+    -workspace macos/MyApp.xcworkspace \
+    -scheme MyApp-macOS \
+    -configuration Release \
+    -destination 'generic/platform=macOS' \
+    -archivePath "$PWD/dist/MyApp.xcarchive" \
+    -allowProvisioningUpdates \
+    -authenticationKeyPath /path/to/AuthKey_KEYID.p8 \
+    -authenticationKeyID KEYID \
+    -authenticationKeyIssuerID ISSUER_UUID
+-   CODE_SIGN_STYLE=Automatic \
++   CODE_SIGN_STYLE=Manual \
++   CODE_SIGN_IDENTITY="Apple Distribution: Example Company (ABCDE12345)" \
++   PROVISIONING_PROFILE_SPECIFIER="MyApp Mac App Store" \
+    DEVELOPMENT_TEAM=ABCDE12345
+```
+
+#### Via Fastlane
+
+A full introduction to [Fastlane](https://fastlane.tools) is out of scope for this article, but below is a sample `Fastfile` you could use for distributing a Mac app.
+
+You'd run it with:
+
+```sh
+MAC_APPLE_TEAM_ID=ABCDE12345
+MAC_APP_STORE_PROFILE=MyApp Mac App Store
+MAC_APP_SIGNING_IDENTITY=Apple Distribution: Example Company (ABCDE12345)
+MAC_INSTALLER_SIGNING_IDENTITY=Apple Distribution: Example Company (ABCDE12345)
+APP_STORE_CONNECT_API_KEY_PATH=/path/to/AuthKey_KEYID.p8
+
+bundle exec fastlane mac release
+```
+
+```ruby name="fastlane/Fastfile"
+require "xcodeproj"
+
+def infer_macos_release_config(app_root: File.expand_path("..", __dir__))
+  macos_root = File.join(app_root, "macos")
+  projects = Dir.glob(File.join(macos_root, "*.xcodeproj"))
+  UI.user_error!("Expected exactly one macos/*.xcodeproj") unless projects.one?
+
+  project_path = projects.first
+  app_name = File.basename(project_path, ".xcodeproj")
+  workspace_path = File.join(macos_root, "#{app_name}.xcworkspace")
+  scheme_name = "#{app_name}-macOS"
+  scheme_path = File.join(project_path, "xcshareddata", "xcschemes", "#{scheme_name}.xcscheme")
+  configuration = Xcodeproj::XCScheme.new(scheme_path).archive_action.build_configuration
+
+  project = Xcodeproj::Project.open(project_path)
+  target = project.targets.find { |item| item.name == scheme_name }
+  UI.user_error!("Missing target #{scheme_name}") unless target
+
+  build_configuration = target.build_configurations.find { |item| item.name == configuration }
+  UI.user_error!("Missing build configuration #{configuration}") unless build_configuration
+  bundle_id = build_configuration.resolve_build_setting("PRODUCT_BUNDLE_IDENTIFIER", target)
+  UI.user_error!("PRODUCT_BUNDLE_IDENTIFIER is missing") if bundle_id.to_s.empty?
+
+  {
+    app_root: app_root,
+    project_path: project_path,
+    workspace_path: workspace_path,
+    scheme_name: scheme_name,
+    target_name: target.name,
+    configuration: configuration,
+    bundle_id: bundle_id,
+    team_id: build_configuration.resolve_build_setting("DEVELOPMENT_TEAM", target),
+    profile_name: build_configuration.resolve_build_setting("PROVISIONING_PROFILE_SPECIFIER", target)
+  }
+end
+
+platform :mac do
+  lane :release do
+    inferred = infer_macos_release_config
+
+    # Signing: use configured project values unless explicitly overridden.
+    team_id = ENV["MAC_APPLE_TEAM_ID"] || inferred[:team_id]
+    profile_name = ENV["MAC_APP_STORE_PROFILE"] || inferred[:profile_name]
+    UI.user_error!("Configure macos.appleTeamId and prebuild, or set MAC_APPLE_TEAM_ID") if team_id.to_s.empty?
+    UI.user_error!("Configure a distribution profile, or set MAC_APP_STORE_PROFILE") if profile_name.to_s.empty?
+
+    # Distribution certificate selection and upload credentials remain explicit.
+    app_identity = ENV.fetch("MAC_APP_SIGNING_IDENTITY")
+    installer_identity = ENV.fetch("MAC_INSTALLER_SIGNING_IDENTITY")
+    api_key_path = File.expand_path(ENV.fetch("APP_STORE_CONNECT_API_KEY_PATH"), inferred[:app_root])
+    UI.user_error!("App Store Connect API key JSON not found: #{api_key_path}") unless File.file?(api_key_path)
+
+    update_code_signing_settings(
+      path: inferred[:project_path],
+      targets: [inferred[:target_name]],
+      build_configurations: [inferred[:configuration]],
+      use_automatic_signing: false,
+      team_id: team_id,
+      code_sign_identity: app_identity,
+      profile_name: profile_name
+    )
+
+    pkg = build_app(
+      workspace: inferred[:workspace_path],
+      scheme: inferred[:scheme_name],
+      configuration: inferred[:configuration],
+      output_directory: File.join(inferred[:app_root], "dist"),
+      export_method: "app-store",
+      export_team_id: team_id,
+      installer_cert_name: installer_identity,
+      skip_profile_detection: true,
+      export_options: {
+        signingCertificate: app_identity,
+        provisioningProfiles: { inferred[:bundle_id] => profile_name }
+      }
+    )
+
+    upload_to_app_store(
+      pkg: pkg,
+      api_key_path: api_key_path,
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: false,
+      run_precheck_before_submit: false
+    )
+  end
+end
+```
+
+### Via third-party distribution
+
+## Distributing your Windows app
+
+### To the Windows Store
+
+### Via third-party distribution
