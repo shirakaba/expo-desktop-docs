@@ -52,8 +52,6 @@ Choose your app's platform and distribution channel.
 
 <EnvironmentContent distribution="store">
 
-As Expo doesn't officially support Mac apps through EAS, we have to implement our own distribution logic.
-
 The easiest way is to:
 
 1. Open `macos/MyApp.xcworkspace`.
@@ -98,13 +96,13 @@ Third-party Mac distribution via the Xcode GUI is not yet documented.
 
 <EnvironmentContent distribution="store">
 
-As Expo doesn't officially support Mac apps through EAS, we have to implement our own distribution logic.
-
 <EnvironmentContent interaction="interactive">
 
 The interactive command is the simplest, but inconvenient for CI and agents, as it will prompt you to sign in.
 
 <EnvironmentContent signing="automatic">
+
+Automatic codesigning is simpler than manual codesigning, but is less flexible when working on a team.
 
 ```sh
 xcodebuild archive \
@@ -122,7 +120,7 @@ xcodebuild archive \
 
 <EnvironmentContent signing="manual">
 
-For manual codesigning, specify a provisioning profile and signing certificate:
+Manual codesigning requires specifying a provisioning profile and signing certificate.
 
 ```sh
 xcodebuild archive \
@@ -144,9 +142,11 @@ xcodebuild archive \
 
 <EnvironmentContent interaction="non-interactive">
 
-To run the command unattended instead, provide the `-authenticationKey*` flags:
+Running the command unattended requires providing the `-authenticationKey*` flags.
 
 <EnvironmentContent signing="automatic">
+
+Automatic codesigning is simpler than manual codesigning, but is less flexible when working on a team.
 
 ```sh
 xcodebuild archive \
@@ -167,7 +167,7 @@ xcodebuild archive \
 
 <EnvironmentContent signing="manual">
 
-For manual codesigning, specify a provisioning profile and signing certificate:
+Manual codesigning requires specifying a provisioning profile and signing certificate.
 
 ```sh
 xcodebuild archive \
@@ -205,8 +205,6 @@ Third-party Mac distribution via the Xcode CLI is not yet documented.
 <EnvironmentContent method="fastlane">
 
 <EnvironmentContent distribution="store">
-
-As Expo doesn't officially support Mac apps through EAS, we have to implement our own distribution logic.
 
 A full introduction to [Fastlane](https://fastlane.tools) is out of scope for this article, but below is a sample `Fastfile` you could use for distributing a Mac app.
 
