@@ -139,9 +139,15 @@ export function EnvironmentContent({
   os?: DevelopmentOS | DevelopmentOS[];
   platform?: TargetOS | TargetOS[];
   distribution?: string | string[];
-  method?: "xcode-gui" | "xcode-cli" | "fastlane";
+  method?:
+    | "xcode-gui"
+    | "xcode-cli"
+    | "fastlane"
+    | "visual-studio-gui"
+    | "cli"
+    | "github-actions";
   interaction?: "interactive" | "non-interactive";
-  signing?: "automatic" | "manual";
+  signing?: "automatic" | "manual" | "certificate" | "azure-trusted-signing";
   children: ReactNode;
 }) {
   const selection = useContext(EnvironmentContext);
