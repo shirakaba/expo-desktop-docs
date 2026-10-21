@@ -1,13 +1,10 @@
 {
   "pages": [
     "index",
-    "scope",
     "---Guides---",
     "...guides",
-    "---Reference---",
-    "cli",
     "---Project---",
-    "how-it-works",
+    "scope",
     "ecosystem",
     "licences"
   ]

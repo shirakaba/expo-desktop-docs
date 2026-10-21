@@ -1,5 +1,0 @@
-{
-  "title": "CLI reference",
-  "icon": "Terminal",
-  "pages": ["index", "create-app", "prebuild", "run-macos", "run-windows"]
-}

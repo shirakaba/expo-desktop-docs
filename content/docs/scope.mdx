@@ -1,54 +1,30 @@
 ---
 title: Supported scope
-description: Which tool to use, what works on desktop, and where support stops.
-icon: ScanLine
+description: What Expo Desktop does and doesn't support
+icon: Telescope
 ---
 
-Expo Desktop extends an Expo project with native macOS and Windows targets. Use it alongside Expo CLI. It does not replace every Expo command or make every Expo SDK package work on desktop.
+Expo Desktop aims to implement as much of the Expo experience as possible. However, as that scope is very large, the fundamentals have had to be prioritised first.
 
-## Which CLI should I use?
+## What it does support
 
-| Task                                           | Command                                        | Notes                                                                                                              |
-| ---------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Create a project that includes desktop support | `npx expo-desktop@latest create-app MyApp`     | Starts from an Expo Desktop template with compatible dependencies and Metro configuration.                         |
-| Generate macOS and Windows projects            | `npx expo-desktop prebuild --platform desktop` | Explicitly selects desktop; see [prebuild](/guides/prebuild) for host restrictions.                                |
-| Generate iOS and Android projects              | `npx expo prebuild`                            | Standard Expo CLI owns the mobile workflow. Expo Desktop also exposes mobile platform selections.                  |
-| Build and run macOS locally                    | `npx expo-desktop run macos`                   | Requires macOS and Xcode.                                                                                          |
-| Build and run Windows locally                  | `npx expo-desktop run windows`                 | Requires Windows and the React Native Windows toolchain.                                                           |
-| Build and run iOS or Android locally           | `npx expo run:ios` / `npx expo run:android`    | Use Expo CLI and the respective native toolchain.                                                                  |
-| Start Metro for every target                   | `npx expo start`                               | Uses the project's desktop-aware Metro configuration. Desktop run commands reuse it, or start a compatible server. |
-| Run the web app                                | `npx expo start --web`                         | Uses the usual Expo web workflow and its dependencies.                                                             |
-| Install Expo packages                          | `npx expo install <package>`                   | Chooses SDK-compatible versions; check each package's desktop support separately.                                  |
-| Build, sign, and submit desktop releases       | Expo Desktop plus Xcode or Visual Studio       | Follow [distribution](/guides/distribution); desktop EAS workflows are not supported.                              |
+- Creating apps (the `create-app` command). Full feature parity, including templates.
+- Building and running apps (the `run macos` and `run windows` commands).
+- Prebuilding apps (the `prebuild` command).
+  - Supports templates.
+  - Lots of config plugins to manipulate the macOS and Windows project files.
+  - Continuous Native Generation.
+- All of Expo Modules Core for macOS (Expo gives us that for free), and **some** of it for Windows (WIP - basically a stub for now).
 
-See the upstream [Expo CLI reference](https://docs.expo.dev/more/expo-cli/) for mobile, web, and package-management commands, and the [Expo Desktop CLI reference](/cli) for desktop command options.
+## What it does not support
 
-## Supported building blocks
-
-- **App creation:** a template combining Expo with React Native macOS and React Native Windows on the supported version line.
-- **Prebuild / CNG:** desktop native projects generated from templates, app configuration, and config plugins. The supported [desktop config fields](/guides/prebuild#configure-desktop-targets) are a subset of the mobile configuration surface.
-- **Local builds:** Debug and Release builds of the generated native projects, using Xcode or the React Native Windows build tools.
-- **Bundling:** Expo Metro configuration extended with desktop resolution through `expo-desktop-metro-config`. The same server serves desktop, iOS, Android, and Web.
-- **Runtime compatibility:** a Windows port of Expo Modules Core and targeted compatibility stubs. This is infrastructure for desktop support, not a promise that the complete Expo SDK has been ported.
-
-The current supported baseline is SDK 55 / React Native 0.83. See [create an app](/guides/create-app) for why all three React Native implementations constrain upgrades.
-
-## Not supported yet
-
-| Feature                                | Desktop status                                                                                                                                                   |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EAS Build and EAS Submit               | No supported macOS or Windows build/submission workflow. Use native tools locally or your own CI. EAS remains available for your app's supported mobile targets. |
-| EAS Update / `expo-updates`            | No supported desktop OTA update workflow. Distribute a new native desktop release instead.                                                                       |
-| Expo Go                                | No macOS or Windows Expo Go target. Build your own native desktop app.                                                                                           |
-| Complete Expo SDK parity               | Modules need platform-specific native implementations. Check support and test on each target.                                                                    |
-| Universal third-party library support  | Native dependencies must support the corresponding desktop platform and architecture. An iOS/Android config plugin alone does not configure desktop.             |
-| Automatic desktop store publishing     | Expo Desktop does not manage store accounts, signing credentials, Xcode archives, or Store upload packages for you.                                              |
-| Arbitrary Expo / React Native upgrades | The desktop implementations must first support the same React Native minor version.                                                                              |
-
-Upstream [EAS Build](https://docs.expo.dev/build/introduction/) describes the supported Android and iOS service. Its mobile instructions do not establish desktop support.
-
-## Sharing app code
-
-Share components and business logic wherever the APIs are available. Use platform-specific files such as `Component.macos.tsx` and `Component.windows.tsx`, or `Platform.OS`, when a desktop target needs different behavior. Design for resizable windows, keyboard and pointer input, and desktop accessibility.
-
-Start with the generated template and validate dependencies on both desktop targets early. A package that can be imported successfully may still lack the native behavior your app needs.
+- The latest version of React Native. This is because we have to use the lowest common denominator of React Native macOS and React Native Windows, which are several minor versions behind.
+- The latest Expo SDK. While it is technically possible to use Expo SDK 58 with React Native 0.83, the main appeal of using the latest Expo SDK is to get the latest React Native, so I've not spent much time pursuing it.
+- Expo UI (for macOS, that will come with Expo SDK 58; for Windows, we may recommend a community implementation).
+- All Expo SDK modules. While one third of iOS modules already build for macOS (Expo gives us that for free), on the Windows side, for now we only provide a provisional (untested) implementation of `expo-asset`.
+- All Expo CLI commands. There are
+- Repack for Windows. This seemed like quite a deep rabbit hole.
+- EAS. There are some hard blockers, like EAS simply not offering Windows runners, so I am not too motivated to invest time in it.
+  - This means things like EAS Build, EAS Submit, Expo Update, etc.
+- Linux. For one thing, there is no actively maintained React Native Linux to build upon. For another thing, I've got enough work on my hands dealing with macOS and Windows.
+- Hundreds of third-party libraries. This project makes it easier to start bolstering the ecosystem. But it doesn't fill in the ecosystem itself.
